@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Map
@@ -80,6 +81,7 @@ import java.io.File
  * @param onAddClick ouverture de l'écran de création.
  * @param onNoteClick ouverture du détail d'une note.
  * @param onMapClick ouverture de la carte des notes.
+ * @param onHelpClick réaffichage de l'introduction.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +90,7 @@ fun NoteListScreen(
     onAddClick: () -> Unit,
     onNoteClick: (Note) -> Unit,
     onMapClick: () -> Unit,
+    onHelpClick: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val filtered = remember(notes, query) {
@@ -104,6 +107,9 @@ fun NoteListScreen(
             LargeTopAppBar(
                 title = { Text("Mes notes") },
                 actions = {
+                    IconButton(onClick = onHelpClick) {
+                        Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Revoir l'introduction")
+                    }
                     IconButton(onClick = onMapClick) {
                         Icon(Icons.Outlined.Map, contentDescription = "Voir les notes sur la carte")
                     }
@@ -332,7 +338,7 @@ private fun NoResult(query: String) {
 @Composable
 private fun NoteListScreenPreview() {
     HelloWorldTheme {
-        NoteListScreen(notes = previewNotes, onAddClick = {}, onNoteClick = {}, onMapClick = {})
+        NoteListScreen(notes = previewNotes, onAddClick = {}, onNoteClick = {}, onMapClick = {}, onHelpClick = {})
     }
 }
 
@@ -340,7 +346,7 @@ private fun NoteListScreenPreview() {
 @Composable
 private fun NoteListScreenEmptyPreview() {
     HelloWorldTheme {
-        NoteListScreen(notes = emptyList(), onAddClick = {}, onNoteClick = {}, onMapClick = {})
+        NoteListScreen(notes = emptyList(), onAddClick = {}, onNoteClick = {}, onMapClick = {}, onHelpClick = {})
     }
 }
 

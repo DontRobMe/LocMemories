@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +24,7 @@ import com.ynov.helloworld.ui.AddNoteScreen
 import com.ynov.helloworld.ui.MapScreen
 import com.ynov.helloworld.ui.NoteDetailScreen
 import com.ynov.helloworld.ui.NoteListScreen
+import com.ynov.helloworld.ui.OnboardingScreen
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
 import org.maplibre.android.MapLibre
 
@@ -56,6 +58,7 @@ class MainActivity : ComponentActivity() {
 
 /** Routes de navigation de l'application. */
 private object Routes {
+    const val ONBOARDING = "onboarding"
     const val LIST = "list"
     const val ADD = "add"
     const val DETAIL = "detail/{id}"
@@ -65,7 +68,7 @@ private object Routes {
 }
 
 /**
- * Graphe de navigation : liste → ajout / détail / carte.
+ * Graphe de navigation : introduction (premier lancement) → liste → ajout / détail / carte.
  *
  * Les transitions suivent le motif Material « shared axis » horizontal
  * (glissement d'un quart d'écran combiné à un fondu).
@@ -74,21 +77,39 @@ private object Routes {
 fun NotesApp(viewModel: NotesViewModel) {
     val navController = rememberNavController()
     val notes by viewModel.notes.collectAsState()
+    val startDestination = remember {
+        if (viewModel.preferences.onboardingDone) Routes.LIST else Routes.ONBOARDING
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Routes.LIST,
+        startDestination = startDestination,
         enterTransition = { slideInHorizontally(tween(300)) { it / 4 } + fadeIn(tween(300)) },
         exitTransition = { slideOutHorizontally(tween(300)) { -it / 4 } + fadeOut(tween(150)) },
         popEnterTransition = { slideInHorizontally(tween(300)) { -it / 4 } + fadeIn(tween(300)) },
         popExitTransition = { slideOutHorizontally(tween(300)) { it / 4 } + fadeOut(tween(150)) },
     ) {
+        composable(Routes.ONBOARDING) {
+            OnboardingScreen(
+                onFinish = {
+                    viewModel.preferences.onboardingDone = true
+                    if (navController.previousBackStackEntry != null) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(Routes.LIST) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                },
+            )
+        }
         composable(Routes.LIST) {
             NoteListScreen(
                 notes = notes,
                 onAddClick = { navController.navigate(Routes.ADD) },
                 onNoteClick = { navController.navigate(Routes.detail(it.id)) },
                 onMapClick = { navController.navigate(Routes.MAP) },
+                onHelpClick = { navController.navigate(Routes.ONBOARDING) },
             )
         }
         composable(Routes.ADD) {
