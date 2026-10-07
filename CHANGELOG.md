@@ -7,6 +7,11 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Modifié
+- Carte : passage d'osmdroid à MapLibre Native (rendu vectoriel fluide, rotation et inclinaison).
+- Fonds de carte OpenFreeMap « Positron » (clair) et « Dark » (sombre), sans clé API.
+- Titre des notes affiché sous chaque marqueur ; marqueur agrandi pour la note sélectionnée.
+
 ## [1.0.0] - 2026-10-07
 
 ### Ajouté

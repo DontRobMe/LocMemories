@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -73,10 +76,15 @@ fun MapScreen(
     val focused = located.find { it.id == focusedId }
 
     Box(Modifier.fillMaxSize()) {
+        val bars = WindowInsets.systemBars.asPaddingValues()
         NotesMap(
             notes = located,
             focused = focused,
             onNoteClick = onNoteClick,
+            ornamentPadding = PaddingValues(
+                top = bars.calculateTopPadding() + 64.dp,
+                bottom = bars.calculateBottomPadding() + if (located.isEmpty()) 0.dp else 112.dp,
+            ),
             modifier = Modifier.fillMaxSize(),
         )
 

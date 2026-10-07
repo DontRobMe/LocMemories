@@ -16,7 +16,7 @@ pour chaque note, un titre, un contenu, une photo, la date et le lieu où elle a
 |---|---|
 | UI | Jetpack Compose, Material 3 |
 | Navigation | Navigation Compose |
-| Carte | osmdroid (OpenStreetMap, sans clé API) |
+| Carte | MapLibre Native (vectoriel), fonds OpenFreeMap sans clé API |
 | Images | Coil |
 | Localisation | `LocationManager` (sans Google Play Services) |
 | Stockage | Fichier JSON + photos dans le stockage interne |

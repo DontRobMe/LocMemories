@@ -72,7 +72,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.coil.compose)
-    implementation(libs.osmdroid.android)
+    implementation(libs.maplibre.android)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
