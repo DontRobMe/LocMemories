@@ -10,11 +10,16 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 ### Ajouté
 - Introduction en carrousel au premier lancement (4 pages, « Passer », indicateur accessible).
 - Bouton « Revoir l'introduction » dans la barre de la liste.
+- Tests unitaires et d'écrans (JUnit, Robolectric, Compose UI Test) : 49 tests exécutés sans émulateur.
+- Tests de bout en bout instrumentés : premier lancement, création et persistance d'une note.
 
 ### Modifié
 - Carte : passage d'osmdroid à MapLibre Native (rendu vectoriel fluide, rotation et inclinaison).
 - Fonds de carte OpenFreeMap « Positron » (clair) et « Dark » (sombre), sans clé API.
 - Titre des notes affiché sous chaque marqueur ; marqueur agrandi pour la note sélectionnée.
+
+### Corrigé
+- Introduction : titre coupé sur petit écran ou avec un texte agrandi (illustration adaptative, page défilante).
 
 ### Performances
 - Mini-carte du détail rendue en image statique (`MapSnapshotter`) au lieu d'un moteur de carte complet.

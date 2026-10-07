@@ -48,6 +48,23 @@ que la release (R8), mais signée avec la clé de debug pour s'installer directe
 Sur émulateur, la carte s'appuie sur le GPU : dans *Device Manager → Edit → Show Advanced
 Settings*, régler **Graphics acceleration** sur *Hardware*.
 
+## Tests
+
+| Type | Emplacement | Outils | Lancement |
+|---|---|---|---|
+| Unitaires et écrans | `app/src/test` | JUnit 4, Robolectric, Compose UI Test | `./gradlew testDebugUnitTest` |
+| Bout en bout | `app/src/androidTest` | Compose UI Test, AndroidX Test | `./gradlew connectedDebugAndroidTest` (appareil requis) |
+
+Les tests unitaires tournent sur la JVM, sans émulateur, grâce à Robolectric :
+
+- **Modèle et formatage** : localisation d'une note, dates, coordonnées (affichées et vocalisées).
+- **Stockage** : aller-retour JSON, absence de fichier temporaire, redimensionnement des photos.
+- **ViewModel** : chargement trié, ajout, suppression avec la photo, ajout pendant le chargement.
+- **Écrans** : liste (vide, recherche, navigation), création (validation du titre),
+  détail (confirmation de suppression), introduction (navigation, petit écran, texte agrandi).
+
+Le rapport HTML est généré dans `app/build/reports/tests/testDebugUnitTest/index.html`.
+
 ---
 
 ## Versioning
