@@ -31,10 +31,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -58,6 +54,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.ynov.helloworld.ui.icons.EditNote
+import com.ynov.helloworld.ui.icons.Map
+import com.ynov.helloworld.ui.icons.MyLocation
+import com.ynov.helloworld.ui.icons.PhotoCamera
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch

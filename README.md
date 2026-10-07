@@ -45,8 +45,30 @@ que la release (R8), mais signée avec la clé de debug pour s'installer directe
 
 *Build → Select Build Variant… → app : `benchmark`*, puis **Run**.
 
-Sur émulateur, la carte s'appuie sur le GPU : dans *Device Manager → Edit → Show Advanced
-Settings*, régler **Graphics acceleration** sur *Hardware*.
+### Régler l'émulateur
+
+Par défaut (*Graphics : Automatic*), l'émulateur peut se rabattre sur un rendu **logiciel**
+(SwiftShader) : chaque image est alors calculée par le processeur et tout rame, la carte en
+particulier. Pour vérifier :
+
+```bash
+adb shell dumpsys SurfaceFlinger | grep GLES
+```
+
+Si la ligne mentionne *SwiftShader*, dans *Device Manager → ✏️ Edit → Show Advanced Settings* :
+
+| Réglage | Valeur conseillée |
+|---|---|
+| Graphics acceleration | **Hardware** (GPU de la machine) |
+| RAM | 3 Go (2 Go est juste avec le Play Store) |
+| Boot | *Cold boot* une fois après le changement |
+
+Mesures sur un i5-1035G7 (Iris Plus), introduction balayée au doigt :
+
+| Configuration | Démarrage à froid | Images saccadées |
+|---|---|---|
+| GPU, debug | ~9 s | 38 % |
+| GPU, `benchmark` | ~2 s | 15 % |
 
 ## Tests
 

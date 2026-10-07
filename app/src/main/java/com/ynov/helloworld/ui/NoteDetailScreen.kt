@@ -24,11 +24,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.LocationOff
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -61,6 +58,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.ynov.helloworld.data.Note
+import com.ynov.helloworld.ui.icons.LocationOff
+import com.ynov.helloworld.ui.icons.OpenInNew
+import com.ynov.helloworld.ui.icons.Schedule
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
 import java.io.File
 

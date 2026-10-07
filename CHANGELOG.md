@@ -19,6 +19,8 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 - Titre des notes affiché sous chaque marqueur ; marqueur agrandi pour la note sélectionnée.
 
 ### Corrigé
+- Release : plantage au démarrage (IllegalAccessError) causé par l'option R8 `packageScope`
+  du modèle de projet AGP 9 ; retour à l'optimisation R8 complète.
 - Introduction : titre coupé sur petit écran ou avec un texte agrandi (illustration adaptative, page défilante).
 
 ### Performances
@@ -28,6 +30,9 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 - Carrousel d'introduction animé sans recomposition pendant le balayage.
 - Formateurs de date mis en cache, type de contenu déclaré pour la liste.
 - Variante `benchmark` : build optimisé (R8) installable pour mesurer les performances réelles.
+- Icônes : `material-icons-core` + 11 icônes intégrées au lieu de `material-icons-extended`
+  (builds R8 plus rapides, APK plus léger).
+- Gradle : compilation parallèle, cache de build et mémoire du démon augmentée.
 
 ## [1.0.0] - 2026-10-07
 

@@ -47,9 +47,14 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
+            /*
+             * Optimisation R8 complète. L'option packageScope du modèle de projet AGP 9 a été
+             * retirée : en limitant R8 à androidx / kotlin / kotlinx, elle déplaçait des classes
+             * Kotlin hors de leur package et faisait planter l'application au démarrage
+             * (IllegalAccessError dans kotlin.sequences).
+             */
             optimization {
                 enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
         create("benchmark") {
@@ -103,7 +108,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.coil.compose)
     implementation(libs.androidx.exifinterface)
     implementation(libs.maplibre.android)
