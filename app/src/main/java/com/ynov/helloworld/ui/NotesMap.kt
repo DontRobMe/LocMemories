@@ -1,11 +1,17 @@
 package com.ynov.helloworld.ui
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.View
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.Icon
@@ -20,11 +26,14 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -43,6 +52,8 @@ import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.snapshotter.MapSnapshot
+import org.maplibre.android.snapshotter.MapSnapshotter
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
@@ -71,7 +82,6 @@ import org.maplibre.geojson.Point
  *
  * @param notes notes à afficher ; celles sans position sont ignorées.
  * @param focused note sur laquelle centrer la carte (avec animation) quand elle change.
- * @param interactive `false` pour une carte figée, intégrée à un écran qui défile.
  * @param ornamentPadding zones recouvertes par l'interface (barres, carrousel) : la boussole,
  *   l'attribution et le cadrage des notes en tiennent compte.
  * @param onNoteClick action au toucher d'un marqueur ; `null` pour des marqueurs inertes.
@@ -81,7 +91,6 @@ fun NotesMap(
     notes: List<Note>,
     modifier: Modifier = Modifier,
     focused: Note? = null,
-    interactive: Boolean = true,
     ornamentPadding: PaddingValues = PaddingValues(0.dp),
     onNoteClick: ((Note) -> Unit)? = null,
 ) {
@@ -165,8 +174,6 @@ fun NotesMap(
             m.cameraPosition = CameraPosition.Builder().target(FRANCE_CENTER).zoom(4.5).build()
             m.uiSettings.apply {
                 isLogoEnabled = false
-                isCompassEnabled = interactive
-                setAllGesturesEnabled(interactive)
             }
             m.addOnMapClickListener { point ->
                 val screen = m.projection.toScreenLocation(point)
@@ -244,6 +251,84 @@ fun NotesMap(
         factory = { mapView },
         modifier = modifier.semantics { contentDescription = description },
     )
+}
+
+// endregion
+
+// region Aperçu statique
+
+/**
+ * Aperçu non interactif du lieu d'une note, pour les écrans qui défilent.
+ *
+ * Plutôt que d'instancier un moteur de carte complet (contexte OpenGL, gestes, animations),
+ * l'image est générée une seule fois par [MapSnapshotter] puis affichée comme une simple
+ * image Compose : défilement fluide, coins arrondis et transitions sans artefacts.
+ * Le marqueur est dessiné par Compose au centre de l'image.
+ *
+ * @param note note géolocalisée à situer.
+ */
+@Composable
+fun StaticNoteMap(note: Note, modifier: Modifier = Modifier) {
+    val description = "Carte montrant l'emplacement de « ${note.title} »"
+    val background = MaterialTheme.colorScheme.surfaceContainerHighest
+    BoxWithConstraints(
+        modifier = modifier
+            .background(background)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        val inPreview = LocalInspectionMode.current
+        if (!inPreview && note.hasLocation) {
+            val context = LocalContext.current
+            val darkTheme = isSystemInDarkTheme()
+            val widthDp = maxWidth.value.toInt()
+            val heightDp = maxHeight.value.toInt()
+            var image by remember(note.id, darkTheme) { mutableStateOf<Bitmap?>(null) }
+
+            DisposableEffect(note.id, darkTheme, widthDp, heightDp) {
+                val snapshotter = MapSnapshotter(
+                    context,
+                    MapSnapshotter.Options(widthDp, heightDp)
+                        .withStyleBuilder(Style.Builder().fromUri(if (darkTheme) STYLE_DARK else STYLE_LIGHT))
+                        .withCameraPosition(
+                            CameraPosition.Builder()
+                                .target(LatLng(note.latitude!!, note.longitude!!))
+                                .zoom(15.0)
+                                .build()
+                        )
+                        .withLogo(false),
+                )
+                snapshotter.start(
+                    object : MapSnapshotter.SnapshotReadyCallback {
+                        override fun onSnapshotReady(snapshot: MapSnapshot) {
+                            image = snapshot.bitmap
+                        }
+                    }
+                )
+                onDispose { snapshotter.cancel() }
+            }
+
+            Crossfade(targetState = image, label = "static-map") { bitmap ->
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    Box(Modifier.fillMaxSize())
+                }
+            }
+        } else {
+            Icon(Icons.Outlined.Map, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+        }
+        Image(
+            painter = painterResource(R.drawable.ic_map_pin),
+            contentDescription = null,
+            modifier = Modifier.offset(y = (-20).dp),
+        )
+    }
 }
 
 // endregion

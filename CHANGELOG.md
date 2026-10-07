@@ -16,6 +16,14 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 - Fonds de carte OpenFreeMap « Positron » (clair) et « Dark » (sombre), sans clé API.
 - Titre des notes affiché sous chaque marqueur ; marqueur agrandi pour la note sélectionnée.
 
+### Performances
+- Mini-carte du détail rendue en image statique (`MapSnapshotter`) au lieu d'un moteur de carte complet.
+- Photos redimensionnées à 2048 px et orientées (EXIF) à l'enregistrement : environ 10 fois plus légères.
+- Lecture, écriture et traitement des photos hors du thread principal ; sauvegarde atomique du JSON.
+- Carrousel d'introduction animé sans recomposition pendant le balayage.
+- Formateurs de date mis en cache, type de contenu déclaré pour la liste.
+- Variante `benchmark` : build optimisé (R8) installable pour mesurer les performances réelles.
+
 ## [1.0.0] - 2026-10-07
 
 ### Ajouté

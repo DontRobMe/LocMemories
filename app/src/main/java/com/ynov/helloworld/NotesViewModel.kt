@@ -2,20 +2,25 @@ package com.ynov.helloworld
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.ynov.helloworld.data.AppPreferences
 import com.ynov.helloworld.data.Note
 import com.ynov.helloworld.data.NoteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import java.io.File
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Source de vérité de l'application : expose la liste des notes et les opérations associées.
  *
- * Chaque modification met à jour l'état en mémoire puis est immédiatement persistée
- * via [NoteRepository].
+ * L'état en mémoire est mis à jour immédiatement (interface réactive), puis persisté
+ * en arrière-plan via [NoteRepository]. Les sauvegardes sont sérialisées par un [Mutex] :
+ * elles s'exécutent une à une, dans l'ordre des modifications.
  */
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,10 +30,25 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     /** Accès au stockage (exposé pour la gestion des photos à l'écran d'ajout). */
     val repository = NoteRepository(application)
 
-    private val _notes = MutableStateFlow(repository.load().sortedByDescending { it.date })
+    private val _notes = MutableStateFlow<List<Note>>(emptyList())
 
     /** Notes triées de la plus récente à la plus ancienne. */
     val notes: StateFlow<List<Note>> = _notes.asStateFlow()
+
+    private val _loaded = MutableStateFlow(false)
+
+    /** `true` une fois les notes chargées depuis le stockage. */
+    val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
+
+    private val saveMutex = Mutex()
+
+    init {
+        viewModelScope.launch {
+            val stored = repository.load().sortedByDescending { it.date }
+            _notes.update { current -> current + stored }
+            _loaded.value = true
+        }
+    }
 
     // region Lecture
 
@@ -64,14 +84,28 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             longitude = longitude,
         )
         _notes.update { listOf(note) + it }
-        repository.save(_notes.value)
+        persist()
     }
 
     /** Supprime la note d'identifiant [id] ainsi que sa photo. */
     fun deleteNote(id: Long) {
-        getNote(id)?.photoPath?.let { File(it).delete() }
+        val photoPath = getNote(id)?.photoPath
         _notes.update { list -> list.filterNot { it.id == id } }
-        repository.save(_notes.value)
+        persist()
+        if (photoPath != null) viewModelScope.launch { repository.deletePhoto(photoPath) }
+    }
+
+    /**
+     * Enregistre l'état courant en arrière-plan, après les sauvegardes déjà en attente.
+     *
+     * Attend la fin du chargement initial : une sauvegarde prématurée écraserait
+     * les notes encore en cours de lecture.
+     */
+    private fun persist() {
+        viewModelScope.launch {
+            _loaded.first { it }
+            saveMutex.withLock { repository.save(_notes.value) }
+        }
     }
 
     // endregion

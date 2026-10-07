@@ -221,9 +221,8 @@ private fun LocationCard(note: Note, onOpenInMaps: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        NotesMap(
-            notes = listOf(note),
-            interactive = false,
+        StaticNoteMap(
+            note = note,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp),

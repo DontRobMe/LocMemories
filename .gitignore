@@ -15,6 +15,7 @@
 /.idea/assetWizardSettings.xml
 /.idea/deploymentTargetSelector.xml
 /.idea/deviceManager.xml
+/.idea/deviceHardwareInput.xml
 /captures
 .externalNativeBuild
 .cxx

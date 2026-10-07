@@ -37,6 +37,17 @@ app/src/main/java/com/ynov/helloworld/
 Ouvrir le dossier dans Android Studio, puis **Run**. Sur émulateur, définir une position
 dans *Extended controls → Location* avant de créer une note.
 
+### Tester les performances
+
+La variante `debug` est volontairement lente (Compose non optimisé, code interprété).
+Pour juger de la fluidité réelle, utiliser la variante **`benchmark`** : mêmes optimisations
+que la release (R8), mais signée avec la clé de debug pour s'installer directement.
+
+*Build → Select Build Variant… → app : `benchmark`*, puis **Run**.
+
+Sur émulateur, la carte s'appuie sur le GPU : dans *Device Manager → Edit → Show Advanced
+Settings*, régler **Graphics acceleration** sur *Hardware*.
+
 ---
 
 ## Versioning

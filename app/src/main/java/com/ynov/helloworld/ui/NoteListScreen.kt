@@ -82,6 +82,8 @@ import java.io.File
  * @param onNoteClick ouverture du détail d'une note.
  * @param onMapClick ouverture de la carte des notes.
  * @param onHelpClick réaffichage de l'introduction.
+ * @param loading `true` tant que les notes sont en cours de chargement : rien n'est affiché,
+ *   pour éviter un flash de l'état vide au démarrage.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +93,7 @@ fun NoteListScreen(
     onNoteClick: (Note) -> Unit,
     onMapClick: () -> Unit,
     onHelpClick: () -> Unit,
+    loading: Boolean = false,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val filtered = remember(notes, query) {
@@ -118,7 +121,7 @@ fun NoteListScreen(
             )
         },
         floatingActionButton = {
-            if (notes.isNotEmpty()) {
+            if (!loading && notes.isNotEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = onAddClick,
                     expanded = fabExpanded,
@@ -128,6 +131,7 @@ fun NoteListScreen(
             }
         },
     ) { padding ->
+        if (loading) return@Scaffold
         if (notes.isEmpty()) {
             EmptyState(onAddClick, Modifier.fillMaxSize().padding(padding))
             return@Scaffold
@@ -162,7 +166,7 @@ fun NoteListScreen(
             if (filtered.isEmpty()) {
                 item(key = "no-result") { NoResult(query) }
             }
-            items(filtered, key = { it.id }) { note ->
+            items(filtered, key = { it.id }, contentType = { "note" }) { note ->
                 NoteCard(note, onClick = { onNoteClick(note) }, modifier = Modifier.animateItem())
             }
         }

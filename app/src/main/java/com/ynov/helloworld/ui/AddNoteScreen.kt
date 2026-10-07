@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,7 @@ import com.ynov.helloworld.data.NoteRepository
 import com.ynov.helloworld.location.fetchCurrentLocation
 import com.ynov.helloworld.location.hasLocationPermission
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -110,6 +112,7 @@ fun AddNoteScreen(
     var content by rememberSaveable { mutableStateOf("") }
     var photoPath by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingPhotoPath by rememberSaveable { mutableStateOf<String?>(null) }
+    var photoJob by remember { mutableStateOf<Job?>(null) }
     var latitude by rememberSaveable { mutableStateOf<Double?>(null) }
     var longitude by rememberSaveable { mutableStateOf<Double?>(null) }
     var locating by rememberSaveable { mutableStateOf(false) }
@@ -153,8 +156,11 @@ fun AddNoteScreen(
     ) { success ->
         val pending = pendingPhotoPath
         if (success && pending != null) {
-            photoPath?.let { File(it).delete() }
-            photoPath = pending
+            photoJob = scope.launch {
+                repository.optimizePhoto(File(pending))
+                photoPath?.let { File(it).delete() }
+                photoPath = pending
+            }
         } else {
             pending?.let { File(it).delete() }
         }
@@ -165,8 +171,11 @@ fun AddNoteScreen(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
-            photoPath?.let { File(it).delete() }
-            photoPath = repository.importPhoto(uri).absolutePath
+            photoJob = scope.launch {
+                val imported = repository.importPhoto(uri).absolutePath
+                photoPath?.let { File(it).delete() }
+                photoPath = imported
+            }
         }
     }
 
@@ -190,6 +199,7 @@ fun AddNoteScreen(
         content = content,
         onContentChange = { content = it },
         photoPath = photoPath,
+        photoProcessing = photoJob?.isActive == true,
         latitude = latitude,
         longitude = longitude,
         locating = locating,
@@ -203,7 +213,12 @@ fun AddNoteScreen(
             photoPath = null
         },
         onRefreshLocation = ::requestLocation,
-        onSave = { onSave(title.trim(), content.trim(), photoPath, latitude, longitude) },
+        onSave = {
+            scope.launch {
+                photoJob?.join()
+                onSave(title.trim(), content.trim(), photoPath, latitude, longitude)
+            }
+        },
         onBack = ::discardAndBack,
     )
 }
@@ -227,6 +242,7 @@ fun AddNoteContent(
     content: String,
     onContentChange: (String) -> Unit,
     photoPath: String?,
+    photoProcessing: Boolean,
     latitude: Double?,
     longitude: Double?,
     locating: Boolean,
@@ -315,7 +331,7 @@ fun AddNoteContent(
             )
 
             SectionTitle("Photo")
-            PhotoSection(photoPath, onTakePicture, onPickImage, onRemovePhoto)
+            PhotoSection(photoPath, photoProcessing, onTakePicture, onPickImage, onRemovePhoto)
 
             SectionTitle("Lieu")
             LocationSection(latitude, longitude, locating, locationError, onRefreshLocation)
@@ -337,11 +353,27 @@ fun AddNoteContent(
 @Composable
 private fun PhotoSection(
     photoPath: String?,
+    processing: Boolean,
     onTakePicture: () -> Unit,
     onPickImage: () -> Unit,
     onRemovePhoto: () -> Unit,
 ) {
-    if (photoPath == null) {
+    if (processing) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "Préparation de la photo"
+                    liveRegion = LiveRegionMode.Polite
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+    } else if (photoPath == null) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -500,6 +532,7 @@ private fun AddNoteContentPreview() {
             content = "Superbe coucher de soleil sur le Vieux-Port.",
             onContentChange = {},
             photoPath = null,
+            photoProcessing = false,
             latitude = 43.29512,
             longitude = 5.37432,
             locating = false,
@@ -524,6 +557,7 @@ private fun AddNoteContentErrorPreview() {
             content = "",
             onContentChange = {},
             photoPath = null,
+            photoProcessing = false,
             latitude = null,
             longitude = null,
             locating = false,
