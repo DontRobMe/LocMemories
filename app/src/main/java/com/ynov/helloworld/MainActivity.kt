@@ -77,6 +77,7 @@ private object Routes {
 fun NotesApp(viewModel: NotesViewModel) {
     val navController = rememberNavController()
     val notes by viewModel.notes.collectAsState()
+    val loaded by viewModel.loaded.collectAsState()
     val startDestination = remember {
         if (viewModel.preferences.onboardingDone) Routes.LIST else Routes.ONBOARDING
     }
@@ -106,6 +107,7 @@ fun NotesApp(viewModel: NotesViewModel) {
         composable(Routes.LIST) {
             NoteListScreen(
                 notes = notes,
+                loading = !loaded,
                 onAddClick = { navController.navigate(Routes.ADD) },
                 onNoteClick = { navController.navigate(Routes.detail(it.id)) },
                 onMapClick = { navController.navigate(Routes.MAP) },
@@ -126,6 +128,7 @@ fun NotesApp(viewModel: NotesViewModel) {
             Routes.DETAIL,
             arguments = listOf(navArgument("id") { type = NavType.LongType }),
         ) { entry ->
+            if (!loaded) return@composable
             val id = entry.arguments?.getLong("id")
             val note = notes.find { it.id == id }
             if (note == null) {
