@@ -50,6 +50,12 @@ android {
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            versionNameSuffix = "-benchmark"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
