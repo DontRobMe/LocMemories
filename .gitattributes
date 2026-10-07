@@ -1,0 +1,11 @@
+# Fins de ligne normalisées dans le dépôt
+* text=auto
+
+# Scripts : fins de ligne imposées par la plateforme cible
+gradlew text eol=lf
+*.bat   text eol=crlf
+
+# Binaires
+*.jar  binary
+*.webp binary
+*.png  binary

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.HelloWorld" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Évite un flash blanc/gris avant le premier rendu Compose. -->
+        <item name="android:windowBackground">@color/surface</item>
+    </style>
+</resources>
