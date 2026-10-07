@@ -24,14 +24,14 @@ import com.ynov.helloworld.ui.MapScreen
 import com.ynov.helloworld.ui.NoteDetailScreen
 import com.ynov.helloworld.ui.NoteListScreen
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
-import org.osmdroid.config.Configuration
+import org.maplibre.android.MapLibre
 
 // region Activité
 
 /**
  * Point d'entrée unique de l'application (architecture « single activity »).
  *
- * Configure osmdroid (user-agent obligatoire pour télécharger les tuiles OpenStreetMap),
+ * Initialise MapLibre (obligatoire avant la création de toute carte),
  * active l'affichage bord à bord puis délègue tout l'affichage à [NotesApp].
  */
 class MainActivity : ComponentActivity() {
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Configuration.getInstance().userAgentValue = packageName
+        MapLibre.getInstance(this)
         enableEdgeToEdge()
         setContent {
             HelloWorldTheme {
