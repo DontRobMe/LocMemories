@@ -27,7 +27,7 @@ pour chaque note, un titre, un contenu, une photo, la date et le lieu où elle a
 app/src/main/java/com/ynov/helloworld/
 ├── MainActivity.kt        Point d'entrée et navigation
 ├── NotesViewModel.kt      État de l'application
-├── data/                  Modèle Note et persistance
+├── data/                  Modèle Note, persistance et préférences
 ├── location/              Permissions et récupération de la position
 └── ui/                    Écrans, composants et thème
 ```

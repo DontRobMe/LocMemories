@@ -7,6 +7,10 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Ajouté
+- Introduction en carrousel au premier lancement (4 pages, « Passer », indicateur accessible).
+- Bouton « Revoir l'introduction » dans la barre de la liste.
+
 ### Modifié
 - Carte : passage d'osmdroid à MapLibre Native (rendu vectoriel fluide, rotation et inclinaison).
 - Fonds de carte OpenFreeMap « Positron » (clair) et « Dark » (sombre), sans clé API.

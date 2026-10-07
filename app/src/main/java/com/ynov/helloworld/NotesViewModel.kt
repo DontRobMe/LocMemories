@@ -2,6 +2,7 @@ package com.ynov.helloworld
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.ynov.helloworld.data.AppPreferences
 import com.ynov.helloworld.data.Note
 import com.ynov.helloworld.data.NoteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,9 @@ import java.io.File
  * via [NoteRepository].
  */
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
+
+    /** Préférences de l'application (introduction déjà vue…). */
+    val preferences = AppPreferences(application)
 
     /** Accès au stockage (exposé pour la gestion des photos à l'écran d'ajout). */
     val repository = NoteRepository(application)
