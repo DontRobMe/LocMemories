@@ -25,14 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.LocationOff
-import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -79,10 +74,15 @@ import coil.compose.AsyncImage
 import com.ynov.helloworld.data.NoteRepository
 import com.ynov.helloworld.location.fetchCurrentLocation
 import com.ynov.helloworld.location.hasLocationPermission
+import com.ynov.helloworld.ui.icons.AddAPhoto
+import com.ynov.helloworld.ui.icons.LocationOff
+import com.ynov.helloworld.ui.icons.MyLocation
+import com.ynov.helloworld.ui.icons.PhotoCamera
+import com.ynov.helloworld.ui.icons.PhotoLibrary
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
+import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
 
 // region Écran (logique)
 

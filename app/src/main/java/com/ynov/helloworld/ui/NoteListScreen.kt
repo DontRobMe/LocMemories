@@ -17,14 +17,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -64,6 +59,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.ynov.helloworld.data.Note
+import com.ynov.helloworld.ui.icons.EditNote
+import com.ynov.helloworld.ui.icons.HelpOutline
+import com.ynov.helloworld.ui.icons.Map
+import com.ynov.helloworld.ui.icons.Schedule
+import com.ynov.helloworld.ui.icons.SearchOff
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
 import java.io.File
 
