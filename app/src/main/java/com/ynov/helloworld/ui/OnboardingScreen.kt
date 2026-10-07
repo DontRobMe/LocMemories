@@ -142,7 +142,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 .weight(1f)
                 .fillMaxWidth(),
         ) { index ->
-            PageContent(pages[index], pageOffset(pagerState, index))
+            PageContent(pages[index], offset = { pageOffset(pagerState, index) })
         }
 
         PageIndicator(
@@ -197,10 +197,11 @@ private fun pageOffset(state: PagerState, index: Int): Float =
  * Contenu d'une page : illustration puis textes centrés.
  *
  * @param offset distance à la page courante, utilisée pour réduire et estomper
- *   l'illustration pendant le balayage.
+ *   l'illustration pendant le balayage. Fournie sous forme de lambda et lue uniquement
+ *   dans `graphicsLayer` : le balayage ne déclenche que des redessins, aucune recomposition.
  */
 @Composable
-private fun PageContent(page: OnboardingPage, offset: Float) {
+private fun PageContent(page: OnboardingPage, offset: () -> Float) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -211,10 +212,11 @@ private fun PageContent(page: OnboardingPage, offset: Float) {
         Illustration(
             icon = page.icon,
             modifier = Modifier.graphicsLayer {
-                val scale = 1f - 0.25f * offset.coerceIn(0f, 1f)
+                val progress = offset().coerceIn(0f, 1f)
+                val scale = 1f - 0.25f * progress
                 scaleX = scale
                 scaleY = scale
-                alpha = 1f - 0.6f * offset.coerceIn(0f, 1f)
+                alpha = 1f - 0.6f * progress
             },
         )
         Text(
