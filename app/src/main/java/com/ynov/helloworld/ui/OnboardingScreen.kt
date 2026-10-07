@@ -9,6 +9,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,13 +18,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Check
@@ -55,8 +59,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
-import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
+import kotlinx.coroutines.launch
 
 // region Contenu
 
@@ -196,51 +200,87 @@ private fun pageOffset(state: PagerState, index: Int): Float =
 /**
  * Contenu d'une page : illustration puis textes centrés.
  *
+ * S'adapte aux petits écrans et aux grandes tailles de texte : l'illustration occupe
+ * au plus 40 % de la hauteur disponible et la page défile si le texte déborde encore.
+ *
  * @param offset distance à la page courante, utilisée pour réduire et estomper
  *   l'illustration pendant le balayage. Fournie sous forme de lambda et lue uniquement
  *   dans `graphicsLayer` : le balayage ne déclenche que des redessins, aucune recomposition.
  */
 @Composable
 private fun PageContent(page: OnboardingPage, offset: () -> Float) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Illustration(
-            icon = page.icon,
-            modifier = Modifier.graphicsLayer {
-                val progress = offset().coerceIn(0f, 1f)
-                val scale = 1f - 0.25f * progress
-                scaleX = scale
-                scaleY = scale
-                alpha = 1f - 0.6f * progress
-            },
-        )
-        Text(
-            page.title,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val illustrationSize = (maxHeight * 0.4f).coerceIn(96.dp, ILLUSTRATION_SIZE)
+        val compact = illustrationSize < ILLUSTRATION_SIZE
+        Column(
             modifier = Modifier
-                .padding(top = 48.dp)
-                .semantics { heading() },
-        )
-        Text(
-            page.text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 16.dp),
-        )
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Illustration(
+                icon = page.icon,
+                size = illustrationSize,
+                modifier = Modifier.graphicsLayer {
+                    val progress = offset().coerceIn(0f, 1f)
+                    val scale = 1f - 0.25f * progress
+                    scaleX = scale
+                    scaleY = scale
+                    alpha = 1f - 0.6f * progress
+                },
+            )
+            Text(
+                page.title,
+                style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = if (compact) 24.dp else 48.dp)
+                    .semantics { heading() },
+            )
+            Text(
+                page.text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+        }
     }
 }
 
-/** Illustration décorative : pictogramme dans un disque, entouré de pastilles colorées. */
+/** Taille de référence de l'illustration, sur laquelle sont calées les pastilles. */
+private val ILLUSTRATION_SIZE = 240.dp
+
+/**
+ * Illustration décorative : pictogramme dans un disque, entouré de pastilles colorées.
+ *
+ * Dessinée à sa taille de référence puis mise à l'échelle vers [size].
+ */
 @Composable
-private fun Illustration(icon: ImageVector, modifier: Modifier = Modifier) {
-    Box(modifier.size(240.dp), contentAlignment = Alignment.Center) {
+private fun Illustration(icon: ImageVector, size: Dp, modifier: Modifier = Modifier) {
+    val scale = size / ILLUSTRATION_SIZE
+    Box(modifier.size(size), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .requiredSize(ILLUSTRATION_SIZE)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            IllustrationArtwork(icon)
+        }
+    }
+}
+
+/** Dessin de l'illustration à sa taille de référence. */
+@Composable
+private fun IllustrationArtwork(icon: ImageVector) {
+    Box(Modifier.size(ILLUSTRATION_SIZE), contentAlignment = Alignment.Center) {
         Bubble(MaterialTheme.colorScheme.tertiaryContainer, 56.dp, x = (-92).dp, y = (-72).dp)
         Bubble(MaterialTheme.colorScheme.secondaryContainer, 36.dp, x = 96.dp, y = (-88).dp)
         Bubble(MaterialTheme.colorScheme.secondaryContainer, 28.dp, x = (-84).dp, y = 92.dp)
