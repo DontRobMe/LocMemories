@@ -16,8 +16,8 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Tests de l'écran de détail.
  *
- * La note utilisée n'a pas de position : l'aperçu cartographique (moteur natif MapLibre)
- * n'est pas disponible sous Robolectric.
+ * La note utilisée n'a pas de position : l'aperçu cartographique (vue osmdroid, qui
+ * télécharge des tuiles) reste en dehors de ces tests JVM.
  */
 @RunWith(RobolectricTestRunner::class)
 class NoteDetailScreenTest {

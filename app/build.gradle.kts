@@ -111,7 +111,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.coil.compose)
     implementation(libs.androidx.exifinterface)
-    implementation(libs.maplibre.android)
+    implementation(libs.osmdroid.android)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)

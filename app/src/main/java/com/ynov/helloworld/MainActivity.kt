@@ -26,15 +26,13 @@ import com.ynov.helloworld.ui.NoteDetailScreen
 import com.ynov.helloworld.ui.NoteListScreen
 import com.ynov.helloworld.ui.OnboardingScreen
 import com.ynov.helloworld.ui.theme.HelloWorldTheme
-import org.maplibre.android.MapLibre
 
 // region Activité
 
 /**
  * Point d'entrée unique de l'application (architecture « single activity »).
  *
- * Initialise MapLibre (obligatoire avant la création de toute carte),
- * active l'affichage bord à bord puis délègue tout l'affichage à [NotesApp].
+ * Active l'affichage bord à bord puis délègue tout l'affichage à [NotesApp].
  */
 class MainActivity : ComponentActivity() {
 
@@ -42,7 +40,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MapLibre.getInstance(this)
         enableEdgeToEdge()
         setContent {
             HelloWorldTheme {
