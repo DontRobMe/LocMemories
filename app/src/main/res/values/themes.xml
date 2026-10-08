@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Thème de l'application : Material 3 jour / nuit, palette teal (values/colors.xml). -->
-    <style name="Theme.HelloWorld" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.LocMemories" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
@@ -38,21 +38,21 @@
         <item name="colorSurfaceInverse">@color/inverse_surface</item>
         <item name="colorOnSurfaceInverse">@color/inverse_on_surface</item>
 
-        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.HelloWorld.Small</item>
-        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.HelloWorld.Medium</item>
-        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.HelloWorld.Large</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.LocMemories.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.LocMemories.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.LocMemories.Large</item>
     </style>
 
     <!-- Arrondis généreux, dans l'esprit Material 3 « expressive ». -->
-    <style name="ShapeAppearance.HelloWorld.Small" parent="ShapeAppearance.Material3.Corner.Small">
+    <style name="ShapeAppearance.LocMemories.Small" parent="ShapeAppearance.Material3.Corner.Small">
         <item name="cornerSize">12dp</item>
     </style>
 
-    <style name="ShapeAppearance.HelloWorld.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+    <style name="ShapeAppearance.LocMemories.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
         <item name="cornerSize">20dp</item>
     </style>
 
-    <style name="ShapeAppearance.HelloWorld.Large" parent="ShapeAppearance.Material3.Corner.Large">
+    <style name="ShapeAppearance.LocMemories.Large" parent="ShapeAppearance.Material3.Corner.Large">
         <item name="cornerSize">28dp</item>
     </style>
 

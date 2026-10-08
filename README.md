@@ -1,4 +1,4 @@
-# Carnet de notes géolocalisées
+# LocMemories
 
 Application Android native en Kotlin : un carnet de notes qui enregistre, pour chaque note,
 un titre, un contenu, une photo, la date et le lieu où elle a été écrite.
@@ -57,7 +57,7 @@ L'application suit le modèle **MVVM**, avec une activité par écran.
 
 ```
 app/src/main/
-├── java/com/ynov/helloworld/
+├── java/com/ynov/locmemories/
 │   ├── App.kt              Dépendances partagées (repository, préférences)
 │   ├── data/               Note, NoteRepository, NoteStorage, AppPreferences
 │   ├── location/           Permissions et position courante

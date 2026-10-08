@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Carnet géolocalisé</string>
+    <string name="app_name">LocMemories</string>
 
     <!-- Commun -->
     <string name="action_back">Retour</string>
