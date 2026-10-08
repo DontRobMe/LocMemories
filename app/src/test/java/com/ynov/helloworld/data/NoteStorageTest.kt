@@ -17,7 +17,7 @@ import org.robolectric.annotation.GraphicsMode
 import java.io.File
 import kotlin.math.max
 
-/** Tests de la persistance des notes et du traitement des photos. */
+/** Tests des fichiers : notes en JSON et traitement des photos. */
 @RunWith(RobolectricTestRunner::class)
 class NoteStorageTest {
 

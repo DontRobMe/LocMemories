@@ -27,11 +27,11 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * Création d'une note : vue de [AddNoteViewModel].
+ * Création d'une note (vue de [AddNoteViewModel]). Ne garde que ce qu'Android impose à une
+ * activité : les lanceurs de l'appareil photo, de la galerie et des permissions.
  *
- * L'activité ne garde que ce qu'Android lui impose (lanceurs de l'appareil photo, de la
- * galerie et des permissions) et affiche l'état du ViewModel. Le bouton « Enregistrer »
- * n'est jamais désactivé : sans titre, le champ passe en erreur avec un message explicite.
+ * Le bouton « Enregistrer » n'est jamais désactivé : un bouton grisé n'explique pas pourquoi
+ * l'action est impossible, alors que le champ en erreur le dit.
  */
 class AddNoteActivity : AppCompatActivity() {
 
@@ -132,7 +132,6 @@ class AddNoteActivity : AppCompatActivity() {
         shownPhoto = path
     }
 
-    /** Affiche l'état de la localisation : en cours, coordonnées trouvées ou erreur. */
     private fun renderLocation(state: AddNoteState) {
         val lat = state.latitude
         val lon = state.longitude

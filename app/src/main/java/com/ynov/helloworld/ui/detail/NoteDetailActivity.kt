@@ -29,15 +29,7 @@ import com.ynov.helloworld.ui.spokenCoordinates
 import kotlinx.coroutines.launch
 import java.io.File
 
-/**
- * Détail d'une note : vue de [NoteDetailViewModel].
- *
- * - photo pleine largeur passant sous la barre d'état ;
- * - mini-carte figée et ouverture du lieu dans une application de cartographie ;
- * - partage en texte brut et suppression protégée par une confirmation.
- *
- * Se ferme d'elle-même si la note n'existe plus (supprimée).
- */
+/** Détail d'une note (vue de [NoteDetailViewModel]) ; se ferme si la note n'existe plus. */
 class NoteDetailActivity : AppCompatActivity() {
 
     private val viewModel: NoteDetailViewModel by viewModels { NoteDetailViewModel.Factory }
@@ -137,7 +129,7 @@ class NoteDetailActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Ouvre le lieu dans l'application de cartographie de l'utilisateur (URI `geo:`). */
+    /** URI `geo:` : ouvre l'application de cartographie choisie par l'utilisateur. */
     private fun openInMaps(note: Note) {
         val lat = note.latitude ?: return
         val lon = note.longitude ?: return
@@ -149,7 +141,6 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
-    /** Partage la note en texte brut (titre, contenu et lien OpenStreetMap si localisée). */
     private fun share(note: Note) {
         val text = buildString {
             appendLine(note.title)
@@ -169,7 +160,6 @@ class NoteDetailActivity : AppCompatActivity() {
     // endregion
 
     companion object {
-        /** Ouvre le détail de la note d'identifiant [id]. */
         fun start(context: Context, id: Long) {
             context.startActivity(
                 Intent(context, NoteDetailActivity::class.java).putExtra(NoteDetailViewModel.EXTRA_ID, id)

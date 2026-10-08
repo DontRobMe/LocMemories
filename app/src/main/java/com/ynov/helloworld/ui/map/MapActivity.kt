@@ -34,10 +34,8 @@ import java.io.File
 // region Écran
 
 /**
- * Carte plein écran de toutes les notes géolocalisées : vue de [MapViewModel].
- *
- * Le carrousel du bas liste ces notes : toucher une carte centre la vue dessus,
- * la flèche ouvre la note. Toucher un marqueur ouvre directement la note.
+ * Carte plein écran (vue de [MapViewModel]). Le carrousel du bas centre la carte sur une note ;
+ * il sert aussi d'alternative accessible aux marqueurs, que TalkBack ne peut pas parcourir.
  */
 class MapActivity : AppCompatActivity() {
 
@@ -116,12 +114,6 @@ class MapActivity : AppCompatActivity() {
 
 // region Carrousel
 
-/**
- * Adaptateur du carrousel (`item_map_note.xml`) ; la note [selectedId] est mise en avant.
- *
- * @param onFocus centre la carte sur la note.
- * @param onOpen ouvre le détail de la note.
- */
 private class MapNoteAdapter(
     private val onFocus: (Note) -> Unit,
     private val onOpen: (Note) -> Unit,

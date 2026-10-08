@@ -37,16 +37,11 @@ class NoteRepositoryTest {
         app.filesDir.mkdirs()
     }
 
-    // region Outils
-
     private fun loadedRepository(): NoteRepository = NoteRepository(app).also { repository ->
         runBlocking { withTimeout(5_000) { repository.loaded.first { it } } }
     }
 
     private fun storedNotes(): List<Note> = runBlocking { NoteStorage(app).load() }
-
-
-    // endregion
 
     // region Chargement
 

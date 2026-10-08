@@ -22,8 +22,6 @@ class FormatTest {
         TimeZone.setDefault(defaultTimeZone)
     }
 
-    // region Dates
-
     @Test
     fun `formatDate affiche le jour, le mois abrégé, l'année et l'heure`() {
         // 7 octobre 2026, 14 h 32 à Paris (UTC+2).
@@ -45,10 +43,6 @@ class FormatTest {
         results.forEach { it.join() }
     }
 
-    // endregion
-
-    // region Coordonnées
-
     @Test
     fun `formatCoordinates garde 5 décimales avec un point`() {
         assertEquals("43.29512, 5.37432", formatCoordinates(43.295123, 5.374321))
@@ -63,6 +57,4 @@ class FormatTest {
     fun `spokenCoordinates est formulé pour la synthèse vocale`() {
         assertEquals("latitude 43,2951, longitude 5,3743", spokenCoordinates(43.295123, 5.374321))
     }
-
-    // endregion
 }

@@ -19,9 +19,6 @@ import com.ynov.helloworld.databinding.ActivityOnboardingBinding
 import com.ynov.helloworld.databinding.ItemOnboardingPageBinding
 import kotlin.math.abs
 
-// region Contenu
-
-/** Page de l'introduction : pictogramme, titre et texte. */
 private data class OnboardingPage(
     @param:DrawableRes val icon: Int,
     @param:StringRes val title: Int,
@@ -35,18 +32,11 @@ private val pages = listOf(
     OnboardingPage(R.drawable.ic_map, R.string.onboarding_title_4, R.string.onboarding_text_4),
 )
 
-// endregion
-
 // region Écran
 
 /**
- * Introduction en carrousel, affichée au premier lancement puis depuis la liste.
- *
- * - balayage horizontal entre les pages, ou boutons « Suivant » / « Commencer » ;
- * - bouton « Passer » pour aller directement à l'application ;
- * - indicateur de progression annoncé par TalkBack (« Page 2 sur 4 »).
- *
- * Terminer ou passer l'introduction la marque comme vue ([OnboardingViewModel]) puis ferme l'écran.
+ * Introduction en carrousel, au premier lancement puis à la demande depuis la liste.
+ * L'indicateur de page est annoncé par TalkBack (« Page 2 sur 4 »).
  */
 class OnboardingActivity : AppCompatActivity() {
 
@@ -83,7 +73,6 @@ class OnboardingActivity : AppCompatActivity() {
         showPage(binding.pager.currentItem)
     }
 
-    /** Met à jour l'indicateur et les boutons pour la page [position]. */
     private fun showPage(position: Int) {
         val last = position == pages.lastIndex
         binding.skip.visibility = if (last) View.INVISIBLE else View.VISIBLE
@@ -117,7 +106,6 @@ class OnboardingActivity : AppCompatActivity() {
 
 // region Adaptateur
 
-/** Affiche une [OnboardingPage] par page du carrousel. */
 private class PageAdapter : RecyclerView.Adapter<PageAdapter.Holder>() {
 
     class Holder(val binding: ItemOnboardingPageBinding) : RecyclerView.ViewHolder(binding.root)

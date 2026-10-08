@@ -16,12 +16,10 @@ import kotlinx.coroutines.sync.withLock
 import java.io.File
 
 /**
- * Point d'accès unique aux notes pour les ViewModels (une instance par application,
- * voir [com.ynov.helloworld.App]).
+ * Source de vérité des notes, partagée par tous les ViewModels (une instance dans [com.ynov.helloworld.App]).
  *
- * L'état en mémoire est mis à jour immédiatement, puis persisté en arrière-plan via
- * [NoteStorage]. Les sauvegardes sont sérialisées par un [Mutex] : elles s'exécutent
- * une à une, dans l'ordre des modifications.
+ * L'état en mémoire est mis à jour immédiatement, puis enregistré en arrière-plan par
+ * [NoteStorage]. Le [Mutex] garantit que les sauvegardes s'exécutent dans l'ordre.
  */
 class NoteRepository(context: Context) {
 
@@ -36,7 +34,6 @@ class NoteRepository(context: Context) {
 
     private val _loaded = MutableStateFlow(false)
 
-    /** `true` une fois les notes chargées depuis le stockage. */
     val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
 
     init {
@@ -49,16 +46,9 @@ class NoteRepository(context: Context) {
 
     // region Notes
 
-    /** Retourne la note d'identifiant [id], ou `null` si elle n'existe pas. */
     fun getNote(id: Long): Note? = _notes.value.find { it.id == id }
 
-    /**
-     * Crée une note datée de maintenant et l'ajoute en tête de liste.
-     *
-     * @param photoPath chemin de la photo déjà copiée dans le stockage interne, ou `null`.
-     * @param latitude latitude du lieu d'écriture, ou `null` si indisponible.
-     * @param longitude longitude du lieu d'écriture, ou `null` si indisponible.
-     */
+    /** Crée une note datée de maintenant ; [photoPath] doit déjà être dans le stockage interne. */
     fun addNote(
         title: String,
         content: String,
@@ -80,7 +70,7 @@ class NoteRepository(context: Context) {
         persist()
     }
 
-    /** Supprime la note d'identifiant [id] ainsi que sa photo. */
+    /** Supprime aussi la photo de la note. */
     fun deleteNote(id: Long) {
         val photoPath = getNote(id)?.photoPath
         _notes.update { list -> list.filterNot { it.id == id } }
@@ -89,9 +79,7 @@ class NoteRepository(context: Context) {
     }
 
     /**
-     * Enregistre l'état courant en arrière-plan, après les sauvegardes déjà en attente.
-     *
-     * Attend la fin du chargement initial : une sauvegarde prématurée écraserait
+     * Attend la fin du chargement initial : une sauvegarde lancée avant écraserait
      * les notes encore en cours de lecture.
      */
     private fun persist() {
@@ -105,16 +93,12 @@ class NoteRepository(context: Context) {
 
     // region Photos
 
-    /** Fichier vide destiné à recevoir une photo de l'appareil photo. */
     fun newPhotoFile(): File = storage.newPhotoFile()
 
-    /** Copie et optimise une image choisie dans la galerie ; renvoie son chemin local. */
     suspend fun importPhoto(uri: Uri): String = storage.importPhoto(uri).absolutePath
 
-    /** Optimise une photo de l'appareil photo une fois la prise de vue terminée. */
     suspend fun optimizePhoto(path: String) = storage.optimizePhoto(File(path))
 
-    /** Supprime une photo en arrière-plan (note supprimée ou brouillon abandonné). */
     fun discardPhoto(path: String) {
         scope.launch { storage.deletePhoto(path) }
     }

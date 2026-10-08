@@ -14,25 +14,14 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
-// region Permissions
-
-/** `true` si l'utilisateur a accordé la localisation précise ou approximative. */
 fun hasLocationPermission(context: Context): Boolean =
     listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         .any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
 
-// endregion
-
-// region Localisation
-
 /**
- * Récupère la position actuelle de l'appareil.
- *
- * Utilise directement [LocationManager] (aucune dépendance à Google Play Services) :
- * 1. demande une position fraîche au GPS, ou au réseau si le GPS est coupé (10 s max) ;
- * 2. à défaut, renvoie la dernière position connue la plus récente.
- *
- * @return la position, ou `null` si la permission est refusée ou aucune source n'est disponible.
+ * Position actuelle via [LocationManager], sans Google Play Services : position fraîche
+ * du GPS (ou du réseau s'il est coupé) en 10 s maximum, sinon la dernière position connue.
+ * `null` si la permission est refusée ou qu'aucune source n'est disponible.
  */
 @SuppressLint("MissingPermission")
 suspend fun fetchCurrentLocation(context: Context): Location? {
@@ -48,12 +37,7 @@ suspend fun fetchCurrentLocation(context: Context): Location? {
             .maxByOrNull { it.time }
 }
 
-/**
- * Demande une mise à jour unique de position à [provider], sous forme de fonction suspendue.
- *
- * Android 11+ dispose de `getCurrentLocation` ; les versions antérieures utilisent
- * `requestSingleUpdate`. L'annulation de la coroutine annule aussi la requête système.
- */
+/** `getCurrentLocation` n'existe qu'à partir d'Android 11 ; avant, `requestSingleUpdate`. */
 @SuppressLint("MissingPermission")
 private suspend fun requestSingleLocation(manager: LocationManager, provider: String): Location? =
     suspendCancellableCoroutine { cont ->
@@ -75,5 +59,3 @@ private suspend fun requestSingleLocation(manager: LocationManager, provider: St
             manager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
         }
     }
-
-// endregion

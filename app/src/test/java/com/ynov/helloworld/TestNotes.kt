@@ -2,9 +2,7 @@ package com.ynov.helloworld
 
 import com.ynov.helloworld.data.Note
 
-// region Données factices
-
-/** Jeu de notes factices pour les tests (avec et sans position, sans photo). */
+/** Notes de test : deux localisées, une sans position, aucune photo. */
 val testNotes = listOf(
     Note(
         id = 1,
@@ -34,5 +32,3 @@ val testNotes = listOf(
         longitude = 5.38420,
     ),
 )
-
-// endregion

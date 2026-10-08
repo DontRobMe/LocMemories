@@ -19,12 +19,7 @@ import com.ynov.helloworld.ui.map.MapActivity
 import com.ynov.helloworld.ui.onboarding.OnboardingActivity
 import kotlinx.coroutines.launch
 
-/**
- * Écran d'accueil : liste des notes, de la plus récente à la plus ancienne.
- *
- * Vue de [NoteListViewModel] : affiche son état (chargement, carnet vide, liste filtrée)
- * et lui transmet la recherche saisie. Ouvre l'introduction au tout premier lancement.
- */
+/** Écran d'accueil (vue de [NoteListViewModel]) ; ouvre l'introduction au tout premier lancement. */
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: NoteListViewModel by viewModels { NoteListViewModel.Factory }
