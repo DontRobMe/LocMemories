@@ -1,140 +1,113 @@
 package com.ynov.helloworld.data
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
+import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import kotlinx.coroutines.test.runTest
+import com.ynov.helloworld.MainDispatcherRule
+import com.ynov.helloworld.TestEnvironment
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.GraphicsMode
-import java.io.File
-import kotlin.math.max
 
-/** Tests de la persistance des notes et du traitement des photos. */
+/** Tests du [NoteRepository] : chargement, ajout, suppression et persistance. */
 @RunWith(RobolectricTestRunner::class)
 class NoteRepositoryTest {
 
-    private val context: Context = ApplicationProvider.getApplicationContext()
-    private lateinit var repository: NoteRepository
+    private val app: Application = ApplicationProvider.getApplicationContext()
 
-    private val notes = listOf(
-        Note(
-            id = 2,
-            title = "Avec tout",
-            content = "Photo et position",
-            photoPath = "/data/photos/photo.jpg",
-            date = 2_000,
-            latitude = 43.29512,
-            longitude = 5.37432,
-        ),
-        Note(
-            id = 1,
-            title = "Sans rien",
-            content = "",
-            photoPath = null,
-            date = 1_000,
-            latitude = null,
-            longitude = null,
-        ),
+    private val stored = listOf(
+        Note(id = 2, title = "Récente", content = "", photoPath = null, date = 2_000, latitude = null, longitude = null),
+        Note(id = 1, title = "Ancienne", content = "", photoPath = null, date = 1_000, latitude = 43.3, longitude = 5.4),
     )
+
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule()
 
     @Before
     fun setUp() {
-        context.filesDir.deleteRecursively()
-        context.filesDir.mkdirs()
-        repository = NoteRepository(context)
+        app.filesDir.deleteRecursively()
+        app.filesDir.mkdirs()
     }
 
-    // region Lecture / écriture
+    // region Outils
+
+    private fun loadedRepository(): NoteRepository = NoteRepository(app).also { repository ->
+        runBlocking { withTimeout(5_000) { repository.loaded.first { it } } }
+    }
+
+    private fun storedNotes(): List<Note> = runBlocking { NoteStorage(app).load() }
+
+
+    // endregion
+
+    // region Chargement
 
     @Test
-    fun `load renvoie une liste vide au premier lancement`() = runTest {
-        assertEquals(emptyList<Note>(), repository.load())
+    fun `les notes enregistrées sont chargées de la plus récente à la plus ancienne`() {
+        runBlocking { NoteStorage(app).save(stored.reversed()) }
+
+        val repository = loadedRepository()
+
+        assertEquals(listOf("Récente", "Ancienne"), repository.notes.value.map { it.title })
     }
 
     @Test
-    fun `les notes enregistrées sont relues à l'identique, valeurs nulles comprises`() = runTest {
-        repository.save(notes)
+    fun `getNote retrouve une note par son identifiant`() {
+        runBlocking { NoteStorage(app).save(stored) }
+        val repository = loadedRepository()
 
-        assertEquals(notes, NoteRepository(context).load())
-    }
-
-    @Test
-    fun `une sauvegarde remplace entièrement la précédente`() = runTest {
-        repository.save(notes)
-        repository.save(notes.take(1))
-
-        assertEquals(notes.take(1), repository.load())
-    }
-
-    @Test
-    fun `la sauvegarde ne laisse aucun fichier temporaire`() = runTest {
-        repository.save(notes)
-
-        val leftovers = context.filesDir.listFiles().orEmpty().filter { it.name.endsWith(".tmp") }
-        assertTrue(leftovers.isEmpty())
+        assertEquals("Ancienne", repository.getNote(1)?.title)
+        assertNull(repository.getNote(42))
     }
 
     // endregion
 
-    // region Photos
+    // region Écriture
 
     @Test
-    fun `les nouvelles photos sont créées dans le dossier dédié`() {
-        val file = repository.newPhotoFile()
+    fun `une note ajoutée apparaît en tête de liste et est enregistrée`() {
+        runBlocking { NoteStorage(app).save(stored) }
+        val repository = loadedRepository()
 
-        assertEquals(repository.photosDir, file.parentFile)
-        assertTrue(file.name.endsWith(".jpg"))
+        repository.addNote("Nouvelle", "Contenu", null, 48.85, 2.35)
+
+        val added = repository.notes.value.first()
+        assertEquals("Nouvelle", added.title)
+        assertEquals(48.85, added.latitude!!, 0.0)
+        TestEnvironment.eventually { storedNotes().size == 3 }
+        assertEquals("Nouvelle", storedNotes().first().title)
     }
 
     @Test
-    fun `deletePhoto supprime le fichier`() = runTest {
-        val file = repository.newPhotoFile().apply { writeText("photo") }
+    fun `une note ajoutée pendant le chargement ne fait pas perdre les notes existantes`() {
+        runBlocking { NoteStorage(app).save(stored) }
 
-        repository.deletePhoto(file.path)
+        val repository = NoteRepository(app)
+        repository.addNote("Pendant le chargement", "", null, null, null)
 
-        assertFalse(file.exists())
+        TestEnvironment.eventually { storedNotes().size == 3 }
+        assertTrue(storedNotes().any { it.title == "Ancienne" })
     }
 
     @Test
-    @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    fun `une photo importée est réduite à 2048 pixels au plus`() = runTest {
-        val source = jpeg(width = 4000, height = 3000)
+    fun `supprimer une note la retire, l'efface du stockage et supprime sa photo`() {
+        val photo = NoteStorage(app).newPhotoFile().apply { writeText("photo") }
+        runBlocking { NoteStorage(app).save(listOf(stored[0].copy(photoPath = photo.path))) }
+        val repository = loadedRepository()
 
-        val imported = repository.importPhoto(Uri.fromFile(source))
+        repository.deleteNote(stored[0].id)
 
-        val size = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            .also { BitmapFactory.decodeFile(imported.path, it) }
-        assertEquals(2048, max(size.outWidth, size.outHeight))
-        assertEquals(4f / 3f, size.outWidth.toFloat() / size.outHeight, 0.01f)
-        assertEquals(repository.photosDir, imported.parentFile)
-    }
-
-    @Test
-    @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    fun `une petite photo n'est pas recompressée`() = runTest {
-        val source = jpeg(width = 800, height = 600)
-
-        val imported = repository.importPhoto(Uri.fromFile(source))
-
-        assertEquals(source.length(), imported.length())
-    }
-
-    /** Crée une image JPEG unie de la taille demandée dans le cache. */
-    private fun jpeg(width: Int, height: Int): File {
-        val file = File(context.cacheDir, "source_${width}x$height.jpg")
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(0xFF006A60.toInt())
-        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-        bitmap.recycle()
-        return file
+        assertTrue(repository.notes.value.isEmpty())
+        TestEnvironment.eventually { storedNotes().isEmpty() && !photo.exists() }
+        assertFalse(photo.exists())
     }
 
     // endregion

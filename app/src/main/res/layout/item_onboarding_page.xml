@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Page de l'introduction : illustration puis textes centrés.
+    La page défile si le contenu déborde (petit écran ou texte agrandi).
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="16dp">
+
+        <!-- Illustration décorative : pictogramme dans un disque, entouré de pastilles. -->
+        <FrameLayout
+            android:id="@+id/illustration"
+            android:layout_width="@dimen/onboarding_illustration"
+            android:layout_height="@dimen/onboarding_illustration"
+            android:importantForAccessibility="noHideDescendants">
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|start"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?attr/colorTertiaryContainer" />
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?attr/colorSecondaryContainer" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?attr/colorSecondaryContainer" />
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?attr/colorTertiaryContainer" />
+
+            <FrameLayout
+                android:layout_width="@dimen/onboarding_disc"
+                android:layout_height="@dimen/onboarding_disc"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?attr/colorPrimaryContainer">
+
+                <ImageView
+                    android:id="@+id/icon"
+                    android:layout_width="@dimen/onboarding_icon"
+                    android:layout_height="@dimen/onboarding_icon"
+                    android:layout_gravity="center"
+                    app:tint="?attr/colorOnPrimaryContainer" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/onboarding_title_margin"
+            android:accessibilityHeading="true"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+</ScrollView>

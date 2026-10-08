@@ -1,6 +1,6 @@
 # Carnet de notes géolocalisées
 
-Application Android native (Kotlin, Jetpack Compose) : un carnet de notes qui enregistre,
+Application Android native (Kotlin, layouts XML) : un carnet de notes qui enregistre,
 pour chaque note, un titre, un contenu, une photo, la date et le lieu où elle a été écrite.
 
 ## Fonctionnalités
@@ -14,22 +14,49 @@ pour chaque note, un titre, un contenu, une photo, la date et le lieu où elle a
 
 | Besoin | Choix |
 |---|---|
-| UI | Jetpack Compose, Material 3 |
-| Navigation | Navigation Compose |
+| UI | Layouts XML, Material Components 3, ViewBinding |
+| Navigation | Une activité par écran, reliées par des `Intent` |
 | Carte | osmdroid (OpenStreetMap, sans clé API) |
 | Images | Coil |
 | Localisation | `LocationManager` (sans Google Play Services) |
 | Stockage | Fichier JSON + photos dans le stockage interne |
 
+## Architecture (MVVM)
+
+```
+ View                      ViewModel                    Repository              Stockage
+ Activity + layout XML ──▶ état (StateFlow) + logique ──▶ NoteRepository ──▶ NoteStorage
+   affiche l'état            survit aux rotations         notes en mémoire       notes.json
+   relaie les actions        SavedStateHandle             (source de vérité)    + photos
+```
+
+- **View** : une `Activity` et son layout par écran. Elle observe l'état du ViewModel et lui
+  transmet les actions ; elle ne garde que ce qu'Android impose (lanceurs d'appareil photo,
+  de galerie, de permissions).
+- **ViewModel** : un par écran, état exposé en `StateFlow`. Il reçoit ses dépendances
+  (repository, préférences, localisation) par une fabrique `Factory` : il est testable seul.
+- **Repository** : `NoteRepository`, unique point d'accès aux notes, partagé par tous les
+  écrans via `App`. Il délègue les fichiers à `NoteStorage`.
+
 ## Structure
 
 ```
-app/src/main/java/com/ynov/helloworld/
-├── MainActivity.kt        Point d'entrée et navigation
-├── NotesViewModel.kt      État de l'application
-├── data/                  Modèle Note, persistance et préférences
-├── location/              Permissions et récupération de la position
-└── ui/                    Écrans, composants et thème
+app/src/main/
+├── java/com/ynov/helloworld/
+│   ├── App.kt             Application : dépendances partagées (repository, préférences)
+│   ├── data/              Note, NoteRepository, NoteStorage, AppPreferences
+│   ├── location/          Permissions et récupération de la position
+│   └── ui/
+│       ├── list/          Liste : MainActivity, NoteListViewModel, NoteAdapter
+│       ├── add/           Création : AddNoteActivity, AddNoteViewModel
+│       ├── detail/        Détail : NoteDetailActivity, NoteDetailViewModel
+│       ├── map/           Carte : MapActivity, MapViewModel
+│       ├── onboarding/    Introduction : OnboardingActivity, OnboardingViewModel
+│       └── NotesMap.kt    Carte osmdroid partagée (détail et carte)
+└── res/
+    ├── layout/            Un fichier XML par écran et par élément de liste
+    ├── drawable/          Icônes vectorielles Material et formes
+    └── values/            Couleurs (clair / sombre), thème, textes, dimensions
 ```
 
 ## Lancer le projet
@@ -39,7 +66,7 @@ dans *Extended controls → Location* avant de créer une note.
 
 ### Tester les performances
 
-La variante `debug` est volontairement lente (Compose non optimisé, code interprété).
+La variante `debug` est volontairement lente (code non optimisé, interprété).
 Pour juger de la fluidité réelle, utiliser la variante **`benchmark`** : mêmes optimisations
 que la release (R8), mais signée avec la clé de debug pour s'installer directement.
 
@@ -63,27 +90,28 @@ Si la ligne mentionne *SwiftShader*, dans *Device Manager → ✏️ Edit → Sh
 | RAM | 3 Go (2 Go est juste avec le Play Store) |
 | Boot | *Cold boot* une fois après le changement |
 
-Mesures sur un i5-1035G7 (Iris Plus), introduction balayée au doigt :
-
-| Configuration | Démarrage à froid | Images saccadées |
-|---|---|---|
-| GPU, debug | ~9 s | 38 % |
-| GPU, `benchmark` | ~2 s | 15 % |
 
 ## Tests
 
 | Type | Emplacement | Outils | Lancement |
 |---|---|---|---|
-| Unitaires et écrans | `app/src/test` | JUnit 4, Robolectric, Compose UI Test | `./gradlew testDebugUnitTest` |
-| Bout en bout | `app/src/androidTest` | Compose UI Test, AndroidX Test | `./gradlew connectedDebugAndroidTest` (appareil requis) |
+| Unitaires et écrans | `app/src/test` | JUnit 4, Robolectric, Espresso | `./gradlew testDebugUnitTest` |
+| Bout en bout | `app/src/androidTest` | Espresso, AndroidX Test | `./gradlew connectedDebugAndroidTest` (appareil requis) |
 
-Les tests unitaires tournent sur la JVM, sans émulateur, grâce à Robolectric :
+Les tests unitaires tournent sur la JVM, sans émulateur, grâce à Robolectric. Ils suivent
+les couches de l'architecture :
 
-- **Modèle et formatage** : localisation d'une note, dates, coordonnées (affichées et vocalisées).
-- **Stockage** : aller-retour JSON, absence de fichier temporaire, redimensionnement des photos.
-- **ViewModel** : chargement trié, ajout, suppression avec la photo, ajout pendant le chargement.
-- **Écrans** : liste (vide, recherche, navigation), création (validation du titre),
-  détail (confirmation de suppression), introduction (navigation, petit écran, texte agrandi).
+| Couche | Tests | Ce qui est vérifié |
+|---|---|---|
+| Stockage | `NoteStorageTest`, `AppPreferencesTest` | Aller-retour JSON, écriture atomique, redimensionnement des photos, préférences |
+| Repository | `NoteRepositoryTest` | Tri, ajout, suppression avec la photo, ajout pendant le chargement |
+| ViewModels | `*ViewModelTest` | Recherche, validation, position (simulée), photos, sélection, état restauré après rotation |
+| Vues | `*ActivityTest` (Espresso) | Affichage de l'état, clics, dialogue de suppression, petit écran |
+| Utilitaires | `NoteTest`, `FormatTest` | Modèle, dates et coordonnées |
+
+Les ViewModels reçoivent leurs dépendances dans leur constructeur : les tests les créent
+directement, avec par exemple une localisation simulée pour `AddNoteViewModel`.
+`MainDispatcherRule` remplace le thread principal pour exécuter leurs coroutines immédiatement.
 
 Le rapport HTML est généré dans `app/build/reports/tests/testDebugUnitTest/index.html`.
 

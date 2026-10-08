@@ -1,42 +1,16 @@
 package com.ynov.helloworld.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.view.View
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.ynov.helloworld.R
 import com.ynov.helloworld.data.Note
-import com.ynov.helloworld.ui.icons.Map
-import org.osmdroid.config.Configuration
+import org.osmdroid.config.Configuration as OsmConfiguration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
@@ -47,108 +21,41 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.TilesOverlay
 import java.io.File
 
-// region Carte
+// region Contrôleur de carte
 
 /**
- * Carte OpenStreetMap (osmdroid) affichant un marqueur par note géolocalisée.
+ * Pilote une [MapView] osmdroid (OpenStreetMap) déclarée dans un layout XML :
+ * un marqueur par note géolocalisée.
  *
- * Comportement :
- * - cadrage automatique sur l'ensemble des notes au premier affichage (France par défaut) ;
- * - marqueur agrandi et caméra animée sur la note [focused] ;
- * - zoom au pincement uniquement, les boutons +/- d'osmdroid étant masqués ;
- * - tuiles inversées en thème sombre ;
- * - dans l'aperçu Android Studio, osmdroid ne pouvant pas s'exécuter,
- *   un simple placeholder est dessiné à la place.
+ * - cadrage automatique sur les notes au premier affichage (France par défaut) ;
+ * - marqueur agrandi et caméra animée sur la note mise en avant ([focus]) ;
+ * - zoom au pincement uniquement, tuiles inversées en thème sombre ;
+ * - mention obligatoire « © OpenStreetMap contributors ».
  *
- * Accessibilité : la vue native est masquée à TalkBack et remplacée par une
- * description qui résume la carte (nombre de notes ou titre de la note).
+ * L'activité hôte relaie son cycle de vie : `map.onResume()` / `map.onPause()`,
+ * puis `map.onDetach()` dans `onDestroy`.
  *
- * @param notes notes à afficher ; celles sans position sont ignorées.
- * @param focused note sur laquelle centrer la carte (avec animation) quand elle change.
- * @param ornamentPadding zones recouvertes par l'interface (barres, carrousel) : l'attribution
- *   OpenStreetMap et le cadrage des notes en tiennent compte.
+ * Accessibilité : les tuiles ne sont pas lisibles par TalkBack, la carte porte donc
+ * une description qui la résume (nombre de notes ou titre de la note).
+ *
+ * @param interactive `false` pour une carte figée, intégrée à un écran qui défile.
  * @param onNoteClick action au toucher d'un marqueur ; `null` pour des marqueurs inertes.
  */
-@Composable
-fun NotesMap(
-    notes: List<Note>,
-    modifier: Modifier = Modifier,
-    focused: Note? = null,
-    ornamentPadding: PaddingValues = PaddingValues(0.dp),
-    onNoteClick: ((Note) -> Unit)? = null,
+class NotesMap(
+    private val map: MapView,
+    interactive: Boolean = true,
+    private val onNoteClick: ((Note) -> Unit)? = null,
 ) {
-    OsmMap(
-        notes = notes,
-        modifier = modifier,
-        focused = focused,
-        interactive = true,
-        ornamentPadding = ornamentPadding,
-        onNoteClick = onNoteClick,
-    )
-}
+    private val context = map.context
+    private val pins = Pins.from(context)
+    private val copyright = CopyrightOverlay(context)
+    private var notes: List<Note> = emptyList()
+    private var focusedId: Long? = null
+    private var fitPadding = 0
+    private var framed = false
 
-/**
- * Aperçu figé du lieu d'une note, pour les écrans qui défilent.
- *
- * Les gestes sont désactivés : le défilement de l'écran n'est jamais capturé par la carte.
- *
- * @param note note géolocalisée à situer.
- */
-@Composable
-fun StaticNoteMap(note: Note, modifier: Modifier = Modifier) {
-    OsmMap(notes = listOf(note), modifier = modifier, interactive = false)
-}
-
-/** Implémentation commune de [NotesMap] et [StaticNoteMap]. */
-@Composable
-private fun OsmMap(
-    notes: List<Note>,
-    modifier: Modifier,
-    focused: Note? = null,
-    interactive: Boolean,
-    ornamentPadding: PaddingValues = PaddingValues(0.dp),
-    onNoteClick: ((Note) -> Unit)? = null,
-) {
-    val located = notes.filter { it.hasLocation }
-    val description = when (located.size) {
-        0 -> "Carte, aucune note géolocalisée"
-        1 -> "Carte montrant l'emplacement de « ${located.first().title} »"
-        else -> "Carte montrant ${located.size} notes"
-    }
-
-    if (LocalInspectionMode.current) {
-        Box(
-            modifier
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .semantics { contentDescription = description },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Outlined.Map, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
-        }
-        return
-    }
-
-    val context = LocalContext.current
-    val darkTheme = isSystemInDarkTheme()
-    val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
-    val padding = with(density) {
-        Insets(
-            left = ornamentPadding.calculateLeftPadding(layoutDirection).roundToPx(),
-            top = ornamentPadding.calculateTopPadding().roundToPx(),
-            right = ornamentPadding.calculateRightPadding(layoutDirection).roundToPx(),
-            bottom = ornamentPadding.calculateBottomPadding().roundToPx(),
-            margin = 8.dp.roundToPx(),
-            fit = 48.dp.roundToPx(),
-        )
-    }
-    val currentOnNoteClick by rememberUpdatedState(onNoteClick)
-
-    val pins = remember { Pins.from(context) }
-    val copyright = remember { CopyrightOverlay(context) }
-    val mapView = remember {
-        context.configureOsmdroid()
-        MapView(context).apply {
+    init {
+        map.apply {
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(interactive)
             zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
@@ -156,94 +63,114 @@ private fun OsmMap(
             minZoomLevel = 3.0
             controller.setZoom(5.0)
             controller.setCenter(FRANCE_CENTER)
-            if (!interactive) setOnTouchListener { _, _ -> true }
+            if (!interactive) disableGestures()
+            val dark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+            if (dark) overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
+            copyright.setTextColor(if (dark) 0xFFE0E0E0.toInt() else 0xFF424242.toInt())
             overlays.add(copyright)
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         }
     }
 
-    // region Cycle de vie de la MapView
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            mapView.onDetach()
+    /** Affiche [notes] ; celles sans position sont ignorées. Cadre la carte au premier appel. */
+    fun setNotes(notes: List<Note>) {
+        this.notes = notes.filter { it.hasLocation }
+        map.contentDescription = describe(this.notes)
+        refreshMarkers()
+        if (!framed && this.notes.isNotEmpty()) {
+            framed = true
+            if (map.isLayoutOccurred) frame() else map.addOnFirstLayoutListener { _, _, _, _, _ -> frame() }
         }
     }
 
-    // endregion
-
-    LaunchedEffect(focused?.id) {
-        val note = focused?.takeIf { it.hasLocation } ?: return@LaunchedEffect
-        mapView.controller.animateTo(GeoPoint(note.latitude!!, note.longitude!!), 16.0, 600L)
+    /** Centre la carte (avec animation) sur [note] et agrandit son marqueur. */
+    fun focus(note: Note) {
+        focusedId = note.id
+        refreshMarkers()
+        if (note.hasLocation) {
+            map.controller.animateTo(GeoPoint(note.latitude!!, note.longitude!!), 16.0, 600L)
+        }
     }
 
-    AndroidView(
-        factory = {
-            mapView.apply {
-                addOnFirstLayoutListener { _, _, _, _, _ -> centerOn(this, located, padding) }
-            }
-        },
-        update = { map ->
-            map.overlayManager.tilesOverlay.setColorFilter(if (darkTheme) TilesOverlay.INVERT_COLORS else null)
-            copyright.setTextColor(if (darkTheme) 0xFFE0E0E0.toInt() else 0xFF424242.toInt())
-            copyright.setOffset(padding.left + padding.margin, padding.bottom + padding.margin)
-            map.overlays.removeAll { it is Marker }
-            located.forEach { note ->
-                map.overlays.add(
-                    Marker(map).apply {
-                        position = GeoPoint(note.latitude!!, note.longitude!!)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        icon = if (note.id == focused?.id) pins.focused else pins.normal
-                        title = note.title
-                        setInfoWindow(null)
-                        setOnMarkerClickListener { _, _ ->
-                            val onClick = currentOnNoteClick
-                            onClick?.invoke(note)
-                            onClick != null
-                        }
+    /**
+     * Zones de la carte recouvertes par l'interface (barres, carrousel), en pixels :
+     * l'attribution et le cadrage des notes en tiennent compte.
+     */
+    fun setCoveredInsets(left: Int, top: Int, bottom: Int) {
+        val margin = (8 * context.resources.displayMetrics.density).toInt()
+        copyright.setOffset(left + margin, bottom + margin)
+        fitPadding = maxOf(top, bottom) + 6 * margin
+        map.invalidate()
+    }
+
+    private fun refreshMarkers() {
+        map.overlays.removeAll { it is Marker }
+        notes.forEach { note ->
+            map.overlays.add(
+                Marker(map).apply {
+                    position = GeoPoint(note.latitude!!, note.longitude!!)
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    icon = if (note.id == focusedId) pins.focused else pins.normal
+                    title = note.title
+                    setInfoWindow(null)
+                    setOnMarkerClickListener { _, _ ->
+                        onNoteClick?.invoke(note)
+                        onNoteClick != null
                     }
-                )
+                }
+            )
+        }
+        map.invalidate()
+    }
+
+    /** Zoom rue pour une seule note, boîte englobante pour plusieurs. */
+    private fun frame() {
+        val points = notes.map { GeoPoint(it.latitude!!, it.longitude!!) }
+        when (points.size) {
+            0 -> Unit
+            1 -> {
+                map.controller.setZoom(16.0)
+                map.controller.setCenter(points.first())
             }
-            map.invalidate()
-        },
-        modifier = modifier.semantics { contentDescription = description },
-    )
+            else -> map.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(points), false, fitPadding)
+        }
+    }
+
+    private fun describe(notes: List<Note>): String = when (notes.size) {
+        0 -> context.getString(R.string.map_description_none)
+        1 -> context.getString(R.string.map_description_one, notes.first().title)
+        else -> context.getString(R.string.map_description_many, notes.size)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun MapView.disableGestures() = setOnTouchListener { _, _ -> true }
 }
 
 // endregion
 
-// region Configuration de la carte
+// region Configuration
 
 /** Centre de la France métropolitaine, utilisé tant qu'aucune note n'est géolocalisée. */
 private val FRANCE_CENTER = GeoPoint(46.6, 2.4)
 
 /**
- * Configure osmdroid avant la création d'une carte.
+ * Configure osmdroid. À appeler avant l'inflation de toute [MapView] (voir `App.onCreate`) :
+ * la vue lit cette configuration dès sa création.
  *
  * - user-agent obligatoire pour télécharger les tuiles OpenStreetMap ;
  * - cache des tuiles dans le stockage privé de l'application : le dossier externe par défaut
  *   n'est plus accessible en écriture depuis Android 10, et les tuiles étaient alors
  *   retéléchargées à chaque affichage.
  */
-private fun Context.configureOsmdroid() {
-    Configuration.getInstance().apply {
+fun Context.configureOsmdroid() {
+    OsmConfiguration.getInstance().apply {
         userAgentValue = packageName
         osmdroidBasePath = File(cacheDir, "osmdroid")
         osmdroidTileCache = File(osmdroidBasePath, "tiles")
     }
 }
 
-/** Marqueurs : normal et agrandi (note sélectionnée dans le carrousel). */
+/** Marqueurs : normal et agrandi (note mise en avant). */
 private class Pins(val normal: Drawable, val focused: Drawable) {
     companion object {
         fun from(context: Context): Pins {
@@ -253,44 +180,6 @@ private class Pins(val normal: Drawable, val focused: Drawable) {
                 normal = BitmapDrawable(context.resources, bitmap),
                 focused = BitmapDrawable(context.resources, large),
             )
-        }
-    }
-}
-
-/**
- * Marges en pixels autour de la carte.
- *
- * @property margin espace entre l'attribution et le bord utile.
- * @property fit marge supplémentaire laissée autour des notes lors du cadrage.
- */
-private data class Insets(
-    val left: Int,
-    val top: Int,
-    val right: Int,
-    val bottom: Int,
-    val margin: Int,
-    val fit: Int,
-)
-
-// endregion
-
-// region Cadrage
-
-/**
- * Cadre la carte sur [notes] : zoom rue pour une seule note,
- * boîte englobante (hors zones recouvertes par l'interface) pour plusieurs.
- */
-private fun centerOn(map: MapView, notes: List<Note>, padding: Insets) {
-    val points = notes.map { GeoPoint(it.latitude!!, it.longitude!!) }
-    when {
-        points.isEmpty() -> Unit
-        points.size == 1 -> {
-            map.controller.setZoom(16.0)
-            map.controller.setCenter(points.first())
-        }
-        else -> {
-            val border = maxOf(padding.top, padding.bottom, padding.left, padding.right) + padding.fit
-            map.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(points), false, border)
         }
     }
 }

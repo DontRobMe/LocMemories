@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Actions de la liste : le titre sert de description pour TalkBack. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_onboarding"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/list_show_onboarding"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_map"
+        android:icon="@drawable/ic_map"
+        android:title="@string/list_show_map"
+        app:showAsAction="always" />
+</menu>
