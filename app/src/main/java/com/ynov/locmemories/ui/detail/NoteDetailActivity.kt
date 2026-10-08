@@ -98,9 +98,11 @@ class NoteDetailActivity : AppCompatActivity() {
         binding.coordinatesRow.visibility = if (located) View.VISIBLE else View.GONE
         binding.locationCard.visibility = if (located) View.VISIBLE else View.GONE
         binding.noLocation.visibility = if (located) View.GONE else View.VISIBLE
-        if (located) {
-            binding.coordinates.text = formatCoordinates(note.latitude!!, note.longitude!!)
-            binding.coordinatesRow.contentDescription = spokenCoordinates(note.latitude, note.longitude)
+        val lat = note.latitude
+        val lon = note.longitude
+        if (lat != null && lon != null) {
+            binding.coordinates.text = formatCoordinates(lat, lon)
+            binding.coordinatesRow.contentDescription = spokenCoordinates(lat, lon)
             map.setNotes(listOf(note))
         }
         applyInsets()

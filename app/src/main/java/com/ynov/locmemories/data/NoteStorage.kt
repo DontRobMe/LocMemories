@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
 import kotlin.math.max
 
 /**
@@ -58,7 +59,8 @@ class NoteStorage(private val context: Context) {
 
     suspend fun importPhoto(uri: Uri): File = withContext(Dispatchers.IO) {
         val target = newPhotoFile()
-        context.contentResolver.openInputStream(uri)!!.use { input ->
+        val stream = context.contentResolver.openInputStream(uri) ?: throw FileNotFoundException(uri.toString())
+        stream.use { input ->
             target.outputStream().use { input.copyTo(it) }
         }
         optimizeInPlace(target)
