@@ -7,6 +7,8 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [1.1.0] - 2026-10-08
+
 ### Ajouté
 - Introduction en carrousel au premier lancement (4 pages, « Passer », indicateur accessible).
 - Bouton « Revoir l'introduction » dans la barre de la liste.
@@ -51,5 +53,6 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
   messages d'erreur explicites, mise en page compatible avec le texte agrandi.
 - Versioning : version pilotée par `version.properties` et tâches Gradle `bump*`.
 
-[Non publié]: ../../compare/v1.0.0...HEAD
+[Non publié]: ../../compare/v1.1.0...HEAD
+[1.1.0]: ../../compare/v1.0.0...v1.1.0
 [1.0.0]: ../../releases/tag/v1.0.0
