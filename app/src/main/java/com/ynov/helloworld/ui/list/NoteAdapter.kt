@@ -12,11 +12,6 @@ import com.ynov.helloworld.databinding.ItemNoteBinding
 import com.ynov.helloworld.ui.formatShortDate
 import java.io.File
 
-/**
- * Adaptateur de la liste des notes (`item_note.xml`).
- *
- * @param onClick ouverture du détail de la note touchée.
- */
 class NoteAdapter(private val onClick: (Note) -> Unit) :
     ListAdapter<Note, NoteAdapter.Holder>(NoteDiff) {
 
@@ -42,7 +37,6 @@ class NoteAdapter(private val onClick: (Note) -> Unit) :
     }
 }
 
-/** Deux éléments sont la même note s'ils ont le même identifiant. */
 object NoteDiff : DiffUtil.ItemCallback<Note>() {
     override fun areItemsTheSame(oldItem: Note, newItem: Note) = oldItem.id == newItem.id
     override fun areContentsTheSame(oldItem: Note, newItem: Note) = oldItem == newItem

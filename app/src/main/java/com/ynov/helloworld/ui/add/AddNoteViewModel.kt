@@ -23,14 +23,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * État de l'écran de création.
- *
- * @property photoPath photo jointe (déjà optimisée), ou `null`.
- * @property photoProcessing `true` pendant la copie / l'optimisation d'une photo.
- * @property locating `true` pendant la recherche de la position.
- * @property locationError message à afficher si la position est indisponible.
- * @property titleError `true` si l'utilisateur a tenté d'enregistrer sans titre.
- * @property saved `true` une fois la note enregistrée : l'écran doit se fermer.
+ * @property photoProcessing copie ou optimisation d'une photo en cours.
+ * @property titleError l'utilisateur a tenté d'enregistrer sans titre.
+ * @property saved note enregistrée : l'écran doit se fermer.
  */
 data class AddNoteState(
     val photoPath: String? = null,
@@ -44,13 +39,10 @@ data class AddNoteState(
 )
 
 /**
- * ViewModel de la création d'une note : photo, position, validation et enregistrement.
+ * La photo et la position sont aussi gardées dans le [SavedStateHandle] : Android peut tuer
+ * le processus pendant que l'appareil photo est au premier plan.
  *
- * La photo et la position sont aussi conservées dans le [SavedStateHandle] : elles survivent
- * à la destruction du processus quand l'appareil photo passe au premier plan.
- *
- * @param fetchLocation récupère la position courante (`null` si indisponible) ;
- *   remplaçable par une position simulée dans les tests.
+ * @param fetchLocation position courante, ou `null` ; simulée dans les tests.
  */
 class AddNoteViewModel(
     private val repository: NoteRepository,
@@ -69,12 +61,11 @@ class AddNoteViewModel(
     )
     val state: StateFlow<AddNoteState> = _state.asStateFlow()
 
-    /** La position doit être demandée (pas encore connue ni en cours de recherche). */
     val locationNeeded: Boolean get() = _state.value.latitude == null && !_state.value.locating
 
     // region Position
 
-    /** Recherche la position (la permission de localisation doit être accordée). */
+    /** La permission de localisation doit déjà être accordée. */
     fun locate() {
         _state.update { it.copy(locating = true, locationError = null) }
         viewModelScope.launch {
@@ -92,7 +83,6 @@ class AddNoteViewModel(
         }
     }
 
-    /** L'utilisateur a refusé la localisation. */
     fun onLocationDenied() {
         _state.update { it.copy(locating = false, locationError = R.string.add_location_denied) }
     }
@@ -101,10 +91,9 @@ class AddNoteViewModel(
 
     // region Photo
 
-    /** Prépare le fichier qui recevra la prise de vue de l'appareil photo. */
     fun preparePhotoFile(): File = repository.newPhotoFile().also { handle[KEY_PENDING_PHOTO] = it.absolutePath }
 
-    /** Résultat de l'appareil photo : la photo est optimisée en arrière-plan, ou supprimée si annulée. */
+    /** Photo optimisée en arrière-plan, ou fichier supprimé si la prise de vue est annulée. */
     fun onPictureTaken(success: Boolean) {
         val pending = handle.remove<String>(KEY_PENDING_PHOTO) ?: return
         if (success) {
@@ -114,7 +103,6 @@ class AddNoteViewModel(
         }
     }
 
-    /** Image choisie dans la galerie : copiée puis optimisée en arrière-plan. */
     fun onImagePicked(uri: Uri) = processPhoto { repository.importPhoto(uri) }
 
     fun removePhoto() {
@@ -140,10 +128,7 @@ class AddNoteViewModel(
 
     // region Enregistrement
 
-    /**
-     * Enregistre la note, après la fin d'un éventuel traitement de photo.
-     * Sans titre, rien n'est enregistré et [AddNoteState.titleError] passe à `true`.
-     */
+    /** Attend la fin d'un éventuel traitement de photo. Sans titre, signale l'erreur et n'enregistre rien. */
     fun save(title: String, content: String) {
         if (title.isBlank()) {
             _state.update { it.copy(titleError = true) }
@@ -161,7 +146,7 @@ class AddNoteViewModel(
         _state.update { it.copy(titleError = false) }
     }
 
-    /** Abandon du brouillon : la photo, qui n'appartient à aucune note, est supprimée. */
+    /** Brouillon abandonné : sa photo n'appartient à aucune note, elle est supprimée. */
     fun discard() {
         _state.value.photoPath?.let(repository::discardPhoto)
     }
@@ -174,7 +159,6 @@ class AddNoteViewModel(
         private const val KEY_LATITUDE = "latitude"
         private const val KEY_LONGITUDE = "longitude"
 
-        /** Fabrique : repository et localisation réelle de l'[com.ynov.helloworld.App]. */
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY]!!.app

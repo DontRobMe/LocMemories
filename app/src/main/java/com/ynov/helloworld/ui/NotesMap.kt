@@ -24,22 +24,12 @@ import java.io.File
 // region Contrôleur de carte
 
 /**
- * Pilote une [MapView] osmdroid (OpenStreetMap) déclarée dans un layout XML :
- * un marqueur par note géolocalisée.
+ * Pilote une [MapView] osmdroid déclarée dans un layout : un marqueur par note géolocalisée.
  *
- * - cadrage automatique sur les notes au premier affichage (France par défaut) ;
- * - marqueur agrandi et caméra animée sur la note mise en avant ([focus]) ;
- * - zoom au pincement uniquement, tuiles inversées en thème sombre ;
- * - mention obligatoire « © OpenStreetMap contributors ».
+ * L'activité hôte doit relayer son cycle de vie (`map.onResume()`, `onPause()`, `onDetach()`).
+ * Les tuiles n'étant pas lisibles par TalkBack, la carte porte une description qui la résume.
  *
- * L'activité hôte relaie son cycle de vie : `map.onResume()` / `map.onPause()`,
- * puis `map.onDetach()` dans `onDestroy`.
- *
- * Accessibilité : les tuiles ne sont pas lisibles par TalkBack, la carte porte donc
- * une description qui la résume (nombre de notes ou titre de la note).
- *
- * @param interactive `false` pour une carte figée, intégrée à un écran qui défile.
- * @param onNoteClick action au toucher d'un marqueur ; `null` pour des marqueurs inertes.
+ * @param interactive `false` pour une carte figée dans un écran qui défile.
  */
 class NotesMap(
     private val map: MapView,
@@ -72,7 +62,7 @@ class NotesMap(
         }
     }
 
-    /** Affiche [notes] ; celles sans position sont ignorées. Cadre la carte au premier appel. */
+    /** Ignore les notes sans position ; cadre la carte sur les notes au premier appel seulement. */
     fun setNotes(notes: List<Note>) {
         this.notes = notes.filter { it.hasLocation }
         map.contentDescription = describe(this.notes)
@@ -83,7 +73,6 @@ class NotesMap(
         }
     }
 
-    /** Centre la carte (avec animation) sur [note] et agrandit son marqueur. */
     fun focus(note: Note) {
         focusedId = note.id
         refreshMarkers()
@@ -92,10 +81,7 @@ class NotesMap(
         }
     }
 
-    /**
-     * Zones de la carte recouvertes par l'interface (barres, carrousel), en pixels :
-     * l'attribution et le cadrage des notes en tiennent compte.
-     */
+    /** Zones recouvertes par l'interface (barres, carrousel), en pixels : l'attribution les évite. */
     fun setCoveredInsets(left: Int, top: Int, bottom: Int) {
         val margin = (8 * context.resources.displayMetrics.density).toInt()
         copyright.setOffset(left + margin, bottom + margin)
@@ -150,17 +136,14 @@ class NotesMap(
 
 // region Configuration
 
-/** Centre de la France métropolitaine, utilisé tant qu'aucune note n'est géolocalisée. */
+/** Vue par défaut tant qu'aucune note n'est géolocalisée. */
 private val FRANCE_CENTER = GeoPoint(46.6, 2.4)
 
 /**
- * Configure osmdroid. À appeler avant l'inflation de toute [MapView] (voir `App.onCreate`) :
- * la vue lit cette configuration dès sa création.
- *
- * - user-agent obligatoire pour télécharger les tuiles OpenStreetMap ;
- * - cache des tuiles dans le stockage privé de l'application : le dossier externe par défaut
- *   n'est plus accessible en écriture depuis Android 10, et les tuiles étaient alors
- *   retéléchargées à chaque affichage.
+ * À appeler avant l'inflation de toute [MapView], qui lit cette configuration à sa création.
+ * Le user-agent est exigé par les serveurs OpenStreetMap. Le cache va dans le stockage privé :
+ * le dossier externe par défaut n'est plus inscriptible depuis Android 10, et les tuiles
+ * étaient alors retéléchargées à chaque affichage.
  */
 fun Context.configureOsmdroid() {
     OsmConfiguration.getInstance().apply {
@@ -170,7 +153,6 @@ fun Context.configureOsmdroid() {
     }
 }
 
-/** Marqueurs : normal et agrandi (note mise en avant). */
 private class Pins(val normal: Drawable, val focused: Drawable) {
     companion object {
         fun from(context: Context): Pins {

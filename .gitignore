@@ -1,28 +1,37 @@
-# Gradle / Kotlin
-.gradle
-.kotlin
-/build
+# Builds et caches Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
 /build42
+.externalNativeBuild/
+.cxx/
 
-# Android Studio
-*.iml
-/.idea/caches
-/.idea/libraries
-/.idea/modules
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/deploymentTargetSelector.xml
-/.idea/deviceManager.xml
-/.idea/deviceHardwareInput.xml
-/captures
-.externalNativeBuild
-.cxx
+# Fichiers générés hors de build/ (export manuel, Build > Generate Signed Bundle / APK)
+*.apk
+*.aab
+*.ap_
+/app/release/
+/app/benchmark/
 
-# Configuration locale (chemin du SDK, clés…)
+# Secrets : configuration locale (chemin du SDK) et clés de signature
 local.properties
+*.jks
+*.keystore
+
+# Android Studio : ignoré sauf les réglages partagés (style de code, inspections,
+# configuration Git), utiles à toute l'équipe.
+*.iml
+/.idea/*
+!/.idea/.gitignore
+!/.idea/AndroidProjectSystem.xml
+!/.idea/codeStyles/
+!/.idea/inspectionProfiles/
+!/.idea/runConfigurations.xml
+!/.idea/vcs.xml
+/captures/
+*.hprof
 
 # Système
 .DS_Store
 Thumbs.db
+desktop.ini

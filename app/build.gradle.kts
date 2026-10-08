@@ -46,12 +46,8 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
-            /*
-             * Optimisation R8 complète. L'option packageScope du modèle de projet AGP 9 a été
-             * retirée : en limitant R8 à androidx / kotlin / kotlinx, elle déplaçait des classes
-             * Kotlin hors de leur package et faisait planter l'application au démarrage
-             * (IllegalAccessError dans kotlin.sequences).
-             */
+            // Sans l'option packageScope du modèle AGP 9 : elle faisait planter l'app au
+            // démarrage (IllegalAccessError, classes Kotlin déplacées hors de leur package).
             optimization {
                 enable = true
             }
@@ -86,10 +82,7 @@ android {
     }
 }
 
-/*
- * Les tests JVM (Robolectric) ne tournent que sur la variante debug : les variantes release
- * et benchmark exécuteraient les mêmes tests une deuxième et une troisième fois.
- */
+// Tests JVM sur la seule variante debug : release et benchmark les exécuteraient en double.
 androidComponents {
     beforeVariants { variant ->
         if (variant.buildType != "debug") {

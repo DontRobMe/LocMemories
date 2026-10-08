@@ -14,27 +14,21 @@ import java.io.File
 import kotlin.math.max
 
 /**
- * Stockage local des notes (source de données utilisée par [NoteRepository]).
+ * Fichiers de l'application, utilisés par [NoteRepository] :
+ * les notes dans `filesDir/notes.json`, les photos dans `filesDir/photos/`.
  *
- * - Les notes sont sérialisées dans `filesDir/notes.json`.
- * - Les photos sont copiées dans `filesDir/photos/` pour rester disponibles
- *   même si l'image d'origine est supprimée de la galerie.
- *
- * Toutes les opérations d'entrée / sortie sont des fonctions suspendues exécutées
- * sur [Dispatchers.IO] : le thread principal n'est jamais bloqué.
- *
- * @param context contexte applicatif utilisé pour accéder au stockage interne.
+ * Les photos de la galerie y sont copiées pour rester disponibles même si l'original
+ * est supprimé. Toutes les entrées / sorties s'exécutent sur [Dispatchers.IO].
  */
 class NoteStorage(private val context: Context) {
 
     private val notesFile = File(context.filesDir, "notes.json")
 
-    /** Dossier de stockage des photos (partagé avec le `FileProvider`). */
+    /** Partagé avec l'appareil photo via le `FileProvider` (`res/xml/file_paths.xml`). */
     val photosDir = File(context.filesDir, "photos").apply { mkdirs() }
 
     // region Lecture / écriture
 
-    /** Charge toutes les notes enregistrées, ou une liste vide au premier lancement. */
     suspend fun load(): List<Note> = withContext(Dispatchers.IO) {
         if (!notesFile.exists()) return@withContext emptyList()
         val array = JSONArray(notesFile.readText())
@@ -42,9 +36,7 @@ class NoteStorage(private val context: Context) {
     }
 
     /**
-     * Remplace le contenu du fichier par [notes].
-     *
-     * L'écriture passe par un fichier temporaire renommé ensuite : un arrêt brutal
+     * Écrit d'abord dans un fichier temporaire, puis le renomme : un arrêt brutal
      * pendant la sauvegarde ne peut pas corrompre les notes existantes.
      */
     suspend fun save(notes: List<Note>) = withContext(Dispatchers.IO) {
@@ -62,15 +54,8 @@ class NoteStorage(private val context: Context) {
 
     // region Photos
 
-    /** Crée un nouveau fichier (vide) destiné à recevoir une photo de l'appareil photo. */
     fun newPhotoFile(): File = File(photosDir, "photo_${System.currentTimeMillis()}.jpg")
 
-    /**
-     * Copie l'image désignée par [uri] (galerie, sélecteur de médias) dans [photosDir],
-     * puis l'optimise avec [optimizePhoto].
-     *
-     * @return le fichier local créé.
-     */
     suspend fun importPhoto(uri: Uri): File = withContext(Dispatchers.IO) {
         val target = newPhotoFile()
         context.contentResolver.openInputStream(uri)!!.use { input ->
@@ -80,10 +65,8 @@ class NoteStorage(private val context: Context) {
         target
     }
 
-    /** Optimise une photo de l'appareil photo, une fois la prise de vue terminée. */
     suspend fun optimizePhoto(file: File) = withContext(Dispatchers.IO) { optimizeInPlace(file) }
 
-    /** Supprime un fichier photo, sans bloquer le thread principal. */
     suspend fun deletePhoto(path: String) = withContext(Dispatchers.IO) { File(path).delete() }
 
     /**
@@ -148,10 +131,10 @@ class NoteStorage(private val context: Context) {
     // endregion
 
     private companion object {
-        /** Taille maximale (en pixels) du plus grand côté d'une photo enregistrée. */
+        /** Plus grand côté d'une photo enregistrée, en pixels. */
         const val MAX_PHOTO_SIZE = 2048
 
-        /** Qualité JPEG : visuellement sans perte, environ 10 fois plus léger qu'un original. */
+        /** Visuellement sans perte, environ 10 fois plus léger qu'un original. */
         const val JPEG_QUALITY = 85
     }
 }

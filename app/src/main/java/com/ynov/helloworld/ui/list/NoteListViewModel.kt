@@ -16,12 +16,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * État de l'écran de liste.
- *
- * @property loading `true` tant que les notes sont en cours de chargement.
- * @property total nombre total de notes, filtre non compris.
+ * @property total nombre de notes, filtre non compris.
  * @property notes notes correspondant à la recherche.
- * @property query recherche en cours (vide = toutes les notes).
  */
 data class NoteListState(
     val loading: Boolean = true,
@@ -29,11 +25,9 @@ data class NoteListState(
     val notes: List<Note> = emptyList(),
     val query: String = "",
 ) {
-    /** Le carnet ne contient aucune note (et le chargement est terminé). */
     val empty: Boolean get() = !loading && total == 0
 }
 
-/** ViewModel de la liste : notes filtrées par la recherche. */
 class NoteListViewModel(
     private val repository: NoteRepository,
     private val preferences: AppPreferences,
@@ -51,10 +45,9 @@ class NoteListViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NoteListState())
 
-    /** `true` tant que l'introduction n'a jamais été vue. */
     val onboardingNeeded: Boolean get() = !preferences.onboardingDone
 
-    /** Filtre la liste sur le titre et le contenu, sans tenir compte de la casse. */
+    /** Sur le titre et le contenu, sans tenir compte de la casse. */
     fun search(text: String) {
         query.value = text
     }
@@ -63,7 +56,6 @@ class NoteListViewModel(
         query.isBlank() || title.contains(query, ignoreCase = true) || content.contains(query, ignoreCase = true)
 
     companion object {
-        /** Fabrique : fournit les dépendances portées par l'[com.ynov.helloworld.App]. */
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY]!!.app
