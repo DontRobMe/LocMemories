@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Illustration de l'introduction : tailles réduites par défaut (petits écrans, texte agrandi),
+    tailles confortables à partir de 600 dp de hauteur (values-h600dp/dimens.xml).
+-->
+<resources>
+    <dimen name="onboarding_illustration">140dp</dimen>
+    <dimen name="onboarding_disc">96dp</dimen>
+    <dimen name="onboarding_icon">48dp</dimen>
+    <dimen name="onboarding_title_margin">20dp</dimen>
+</resources>
