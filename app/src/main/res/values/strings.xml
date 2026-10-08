@@ -1,3 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Carnet géolocalisé</string>
+    <string name="app_name">LocMemories</string>
+
+    <!-- Commun -->
+    <string name="action_back">Retour</string>
+    <string name="action_cancel">Annuler</string>
+
+    <!-- Introduction -->
+    <string name="onboarding_skip">Passer</string>
+    <string name="onboarding_next">Suivant</string>
+    <string name="onboarding_start">Commencer</string>
+    <string name="onboarding_page">Page %1$d sur %2$d</string>
+    <string name="onboarding_title_1">Bienvenue dans votre carnet</string>
+    <string name="onboarding_text_1">Notez vos idées, vos découvertes et vos souvenirs, où que vous soyez.</string>
+    <string name="onboarding_title_2">Une photo pour chaque souvenir</string>
+    <string name="onboarding_text_2">Ajoutez une photo prise sur le moment ou choisie dans votre galerie.</string>
+    <string name="onboarding_title_3">Chaque note a son lieu</string>
+    <string name="onboarding_text_3">La position est enregistrée automatiquement. L\'autorisation vous sera demandée à la première note.</string>
+    <string name="onboarding_title_4">Retrouvez tout sur la carte</string>
+    <string name="onboarding_text_4">Explorez vos notes sur une carte interactive et revivez vos parcours.</string>
+
+    <!-- Liste -->
+    <string name="list_title">Mes notes</string>
+    <string name="list_show_map">Voir les notes sur la carte</string>
+    <string name="list_show_onboarding">Revoir l\'introduction</string>
+    <string name="list_new_note">Nouvelle note</string>
+    <string name="list_search_hint">Rechercher dans mes notes</string>
+    <plurals name="list_count">
+        <item quantity="one">%d note</item>
+        <item quantity="other">%d notes</item>
+    </plurals>
+    <plurals name="list_results">
+        <item quantity="one">%d résultat</item>
+        <item quantity="other">%d résultats</item>
+    </plurals>
+    <string name="list_no_result">Aucune note ne correspond à « %s »</string>
+    <string name="list_empty_title">Votre carnet est vide</string>
+    <string name="list_empty_text">Capturez une idée, une photo et le lieu où vous êtes.</string>
+    <string name="list_empty_action">Écrire ma première note</string>
+    <string name="list_located">Localisée</string>
+
+    <!-- Création -->
+    <string name="add_title">Nouvelle note</string>
+    <string name="add_close">Annuler et fermer</string>
+    <string name="add_field_title">Titre</string>
+    <string name="add_field_title_helper">Obligatoire</string>
+    <string name="add_field_title_error">Donnez un titre à votre note</string>
+    <string name="add_field_content">Contenu</string>
+    <string name="add_field_content_hint">Qu\'avez-vous en tête ?</string>
+    <string name="add_section_photo">Photo</string>
+    <string name="add_photo_invite">Ajoutez une photo pour vous souvenir du moment</string>
+    <string name="add_photo_camera">Appareil photo</string>
+    <string name="add_photo_gallery">Galerie</string>
+    <string name="add_photo_retake">Reprendre</string>
+    <string name="add_photo_other">Choisir une autre</string>
+    <string name="add_photo_remove">Retirer la photo</string>
+    <string name="add_photo_description">Photo jointe à la note</string>
+    <string name="add_photo_processing">Préparation de la photo</string>
+    <string name="add_section_location">Lieu</string>
+    <string name="add_location_label">Position</string>
+    <string name="add_location_searching">Localisation en cours…</string>
+    <string name="add_location_none">Aucune position</string>
+    <string name="add_location_unavailable">Position indisponible. Le GPS est-il activé ?</string>
+    <string name="add_location_denied">Autorisez la localisation pour situer la note.</string>
+    <string name="add_location_refresh">Actualiser la position</string>
+    <string name="add_save">Enregistrer la note</string>
+
+    <!-- Détail -->
+    <string name="detail_back">Retour à la liste</string>
+    <string name="detail_share">Partager la note</string>
+    <string name="detail_delete">Supprimer la note</string>
+    <string name="detail_photo_description">Photo de la note « %s »</string>
+    <string name="detail_section_location">Lieu</string>
+    <string name="detail_written_here">Écrite ici</string>
+    <string name="detail_open_maps">Ouvrir dans Maps</string>
+    <string name="detail_no_location">Aucune position n\'a été enregistrée pour cette note.</string>
+    <string name="detail_no_maps_app">Aucune application de carte installée</string>
+    <string name="detail_delete_title">Supprimer cette note ?</string>
+    <string name="detail_delete_message">« %s » et sa photo seront définitivement supprimées.</string>
+    <string name="detail_delete_confirm">Supprimer</string>
+
+    <!-- Carte -->
+    <plurals name="map_count">
+        <item quantity="one">%d note sur la carte</item>
+        <item quantity="other">%d notes sur la carte</item>
+    </plurals>
+    <string name="map_none">Aucune note géolocalisée</string>
+    <string name="map_open_note">Ouvrir « %s »</string>
+    <string name="map_selected">Affichée sur la carte</string>
+    <string name="map_description_none">Carte, aucune note géolocalisée</string>
+    <string name="map_description_one">Carte montrant l\'emplacement de « %s »</string>
+    <string name="map_description_many">Carte montrant %d notes</string>
 </resources>

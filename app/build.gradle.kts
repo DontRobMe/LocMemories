@@ -1,8 +1,9 @@
+import com.android.build.api.variant.HasHostTestsBuilder
+import com.android.build.api.variant.HostTestBuilder
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
 }
 
 // region Versioning
@@ -25,13 +26,13 @@ val appVersionCode = versionMajor * 10_000 + versionMinor * 100 + versionPatch
 // endregion
 
 android {
-    namespace = "com.ynov.helloworld"
+    namespace = "com.ynov.locmemories"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.ynov.helloworld"
+        applicationId = "com.ynov.locmemories"
         minSdk = 24
         targetSdk = 37
         versionCode = appVersionCode
@@ -45,10 +46,17 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
+            // Sans l'option packageScope du modèle AGP 9 : elle faisait planter l'app au
+            // démarrage (IllegalAccessError, classes Kotlin déplacées hors de leur package).
             optimization {
                 enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
+        }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            versionNameSuffix = "-benchmark"
         }
     }
     compileOptions {
@@ -56,30 +64,51 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
-        compose = true
+        viewBinding = true
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                // Robolectric accède à des API internes du JDK, fermées par défaut depuis Java 17.
+                it.jvmArgs(
+                    "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                    "--enable-native-access=ALL-UNNAMED",
+                )
+            }
+        }
+    }
+}
+
+// Tests JVM sur la seule variante debug : release et benchmark les exécuteraient en double.
+androidComponents {
+    beforeVariants { variant ->
+        if (variant.buildType != "debug") {
+            (variant as? HasHostTestsBuilder)?.hostTests?.get(HostTestBuilder.UNIT_TEST_TYPE)?.enable = false
+        }
     }
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.coil.compose)
+    implementation(libs.material)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.coil)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.osmdroid.android)
     testImplementation(libs.junit)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.tooling)
+    androidTestImplementation(libs.androidx.test.rules)
 }
 
 // region Tâches de versioning

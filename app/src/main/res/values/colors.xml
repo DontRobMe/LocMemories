@@ -1,12 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Palette Material 3 générée à partir de la couleur source teal #00796B (thème clair).
+    Chaque paire « couleur / on-couleur » vise un contraste WCAG AA (≥ 4.5:1).
+    Les valeurs du thème sombre sont dans values-night/colors.xml.
+-->
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#FF006A60</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="primary_container">#FF9EF2E4</color>
+    <color name="on_primary_container">#FF00201C</color>
+    <color name="secondary">#FF4A635F</color>
+    <color name="on_secondary">#FFFFFFFF</color>
+    <color name="secondary_container">#FFCCE8E2</color>
+    <color name="on_secondary_container">#FF05201C</color>
+    <color name="tertiary">#FF456179</color>
+    <color name="on_tertiary">#FFFFFFFF</color>
+    <color name="tertiary_container">#FFCCE5FF</color>
+    <color name="on_tertiary_container">#FF001E31</color>
+    <color name="error">#FFBA1A1A</color>
+    <color name="on_error">#FFFFFFFF</color>
+    <color name="error_container">#FFFFDAD6</color>
+    <color name="on_error_container">#FF410002</color>
     <color name="surface">#FFF4FBF8</color>
+    <color name="on_surface">#FF171D1B</color>
+    <color name="surface_variant">#FFDAE5E1</color>
+    <color name="on_surface_variant">#FF3F4946</color>
+    <color name="outline">#FF6F7976</color>
+    <color name="outline_variant">#FFBEC9C5</color>
+    <color name="surface_container_lowest">#FFFFFFFF</color>
+    <color name="surface_container_low">#FFEFF5F2</color>
+    <color name="surface_container">#FFE9EFEC</color>
+    <color name="surface_container_high">#FFE3EAE7</color>
+    <color name="surface_container_highest">#FFDDE4E1</color>
+    <color name="surface_dim">#FFD5DBD9</color>
+    <color name="surface_bright">#FFF4FBF8</color>
+    <color name="inverse_surface">#FF2B3230</color>
+    <color name="inverse_on_surface">#FFECF2EF</color>
+    <color name="inverse_primary">#FF82D5C8</color>
+
+    <!-- Marqueur de carte (identique dans les deux thèmes). -->
     <color name="map_pin">#FF006A60</color>
 </resources>
