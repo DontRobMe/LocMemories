@@ -14,17 +14,17 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 - Tests de bout en bout instrumentés : premier lancement, création et persistance d'une note.
 
 ### Modifié
-- Carte : passage d'osmdroid à MapLibre Native (rendu vectoriel fluide, rotation et inclinaison).
-- Fonds de carte OpenFreeMap « Positron » (clair) et « Dark » (sombre), sans clé API.
-- Titre des notes affiché sous chaque marqueur ; marqueur agrandi pour la note sélectionnée.
+- Carte : marqueur agrandi et caméra animée pour la note sélectionnée dans le carrousel.
+- Mini-carte du détail figée (gestes désactivés) pour ne pas gêner le défilement.
 
 ### Corrigé
+- Carte : mention obligatoire « © OpenStreetMap contributors » désormais affichée.
 - Release : plantage au démarrage (IllegalAccessError) causé par l'option R8 `packageScope`
   du modèle de projet AGP 9 ; retour à l'optimisation R8 complète.
 - Introduction : titre coupé sur petit écran ou avec un texte agrandi (illustration adaptative, page défilante).
 
 ### Performances
-- Mini-carte du détail rendue en image statique (`MapSnapshotter`) au lieu d'un moteur de carte complet.
+- Cache des tuiles OpenStreetMap dans le stockage privé de l'application (elles étaient retéléchargées à chaque affichage depuis Android 10).
 - Photos redimensionnées à 2048 px et orientées (EXIF) à l'enregistrement : environ 10 fois plus légères.
 - Lecture, écriture et traitement des photos hors du thread principal ; sauvegarde atomique du JSON.
 - Carrousel d'introduction animé sans recomposition pendant le balayage.
