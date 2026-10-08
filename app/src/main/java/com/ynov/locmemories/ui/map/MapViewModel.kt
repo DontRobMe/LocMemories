@@ -42,7 +42,7 @@ class MapViewModel(
         private const val KEY_SELECTED = "selected"
 
         val Factory = viewModelFactory {
-            initializer { MapViewModel(this[APPLICATION_KEY]!!.app.repository, createSavedStateHandle()) }
+            initializer { MapViewModel(checkNotNull(this[APPLICATION_KEY]).app.repository, createSavedStateHandle()) }
         }
     }
 }

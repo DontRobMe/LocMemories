@@ -7,6 +7,10 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Corrigé
+- Ajout de note : une photo illisible ou supprimée ne fait plus planter l'application.
+- Suppression des opérateurs `!!` : notes sans position gérées sans risque de plantage.
+
 ## [1.1.0] - 2026-10-08
 
 ### Ajouté

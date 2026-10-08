@@ -16,10 +16,10 @@ private fun dateFormat(pattern: String) = object : ThreadLocal<SimpleDateFormat>
 }
 
 /** « 7 oct. 2026 à 14:32 » */
-fun formatDate(millis: Long): String = fullDateFormat.get()!!.format(Date(millis))
+fun formatDate(millis: Long): String = fullDateFormat.get().format(Date(millis))
 
 /** « 7 oct. 2026 » */
-fun formatShortDate(millis: Long): String = shortDateFormat.get()!!.format(Date(millis))
+fun formatShortDate(millis: Long): String = shortDateFormat.get().format(Date(millis))
 
 /** « 43.29512, 5.37432 » : 5 décimales, soit une précision d'environ 1 m. */
 fun formatCoordinates(latitude: Double, longitude: Double): String =

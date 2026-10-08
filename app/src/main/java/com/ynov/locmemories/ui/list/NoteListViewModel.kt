@@ -58,7 +58,7 @@ class NoteListViewModel(
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                val app = this[APPLICATION_KEY]!!.app
+                val app = checkNotNull(this[APPLICATION_KEY]).app
                 NoteListViewModel(app.repository, app.preferences)
             }
         }

@@ -15,7 +15,7 @@ class OnboardingViewModel(private val preferences: AppPreferences) : ViewModel()
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { OnboardingViewModel(this[APPLICATION_KEY]!!.app.preferences) }
+            initializer { OnboardingViewModel(checkNotNull(this[APPLICATION_KEY]).app.preferences) }
         }
     }
 }
