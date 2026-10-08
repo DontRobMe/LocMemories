@@ -14,6 +14,7 @@ et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 - Tests de bout en bout instrumentés : premier lancement, création et persistance d'une note.
 
 ### Modifié
+- Projet renommé **LocMemories** : nom de l'application, package et `applicationId` `com.ynov.locmemories`.
 - Interface réécrite en layouts XML (Material Components 3, ViewBinding) : une activité par écran
   au lieu de Jetpack Compose.
 - Architecture MVVM : une Activity (vue) et un ViewModel par écran, `NoteRepository` comme source

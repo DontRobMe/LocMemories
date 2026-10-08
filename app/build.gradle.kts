@@ -26,13 +26,13 @@ val appVersionCode = versionMajor * 10_000 + versionMinor * 100 + versionPatch
 // endregion
 
 android {
-    namespace = "com.ynov.helloworld"
+    namespace = "com.ynov.locmemories"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.ynov.helloworld"
+        applicationId = "com.ynov.locmemories"
         minSdk = 24
         targetSdk = 37
         versionCode = appVersionCode
