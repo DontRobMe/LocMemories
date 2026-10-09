@@ -44,7 +44,7 @@ class NoteDetailViewModel(
         const val EXTRA_ID = "note_id"
 
         val Factory = viewModelFactory {
-            initializer { NoteDetailViewModel(this[APPLICATION_KEY]!!.app.repository, createSavedStateHandle()) }
+            initializer { NoteDetailViewModel(checkNotNull(this[APPLICATION_KEY]).app.repository, createSavedStateHandle()) }
         }
     }
 }

@@ -15,6 +15,7 @@ import com.ynov.locmemories.app
 import com.ynov.locmemories.data.NoteRepository
 import com.ynov.locmemories.location.fetchCurrentLocation
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -113,7 +114,15 @@ class AddNoteViewModel(
     private fun processPhoto(process: suspend () -> String) {
         photoJob = viewModelScope.launch {
             _state.update { it.copy(photoProcessing = true) }
-            val path = process()
+            val path = try {
+                process()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Photo illisible ou introuvable : on garde la photo actuelle au lieu de planter.
+                _state.update { it.copy(photoProcessing = false) }
+                return@launch
+            }
             _state.value.photoPath?.let(repository::discardPhoto)
             setPhoto(path)
         }
@@ -161,7 +170,7 @@ class AddNoteViewModel(
 
         val Factory = viewModelFactory {
             initializer {
-                val app = this[APPLICATION_KEY]!!.app
+                val app = checkNotNull(this[APPLICATION_KEY]).app
                 AddNoteViewModel(app.repository, { fetchCurrentLocation(app) }, createSavedStateHandle())
             }
         }

@@ -76,9 +76,7 @@ class NotesMap(
     fun focus(note: Note) {
         focusedId = note.id
         refreshMarkers()
-        if (note.hasLocation) {
-            map.controller.animateTo(GeoPoint(note.latitude!!, note.longitude!!), 16.0, 600L)
-        }
+        note.geoPoint?.let { map.controller.animateTo(it, 16.0, 600L) }
     }
 
     /** Zones recouvertes par l'interface (barres, carrousel), en pixels : l'attribution les évite. */
@@ -92,9 +90,10 @@ class NotesMap(
     private fun refreshMarkers() {
         map.overlays.removeAll { it is Marker }
         notes.forEach { note ->
+            val point = note.geoPoint ?: return@forEach
             map.overlays.add(
                 Marker(map).apply {
-                    position = GeoPoint(note.latitude!!, note.longitude!!)
+                    position = point
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     icon = if (note.id == focusedId) pins.focused else pins.normal
                     title = note.title
@@ -111,7 +110,7 @@ class NotesMap(
 
     /** Zoom rue pour une seule note, boîte englobante pour plusieurs. */
     private fun frame() {
-        val points = notes.map { GeoPoint(it.latitude!!, it.longitude!!) }
+        val points = notes.mapNotNull { it.geoPoint }
         when (points.size) {
             0 -> Unit
             1 -> {
@@ -136,6 +135,13 @@ class NotesMap(
 
 // region Configuration
 
+private val Note.geoPoint: GeoPoint?
+    get() {
+        val lat = latitude ?: return null
+        val lon = longitude ?: return null
+        return GeoPoint(lat, lon)
+    }
+
 /** Vue par défaut tant qu'aucune note n'est géolocalisée. */
 private val FRANCE_CENTER = GeoPoint(46.6, 2.4)
 
@@ -156,7 +162,7 @@ fun Context.configureOsmdroid() {
 private class Pins(val normal: Drawable, val focused: Drawable) {
     companion object {
         fun from(context: Context): Pins {
-            val bitmap = ContextCompat.getDrawable(context, R.drawable.ic_map_pin)!!.toBitmap()
+            val bitmap = checkNotNull(ContextCompat.getDrawable(context, R.drawable.ic_map_pin)).toBitmap()
             val large = bitmap.scale((bitmap.width * 1.35f).toInt(), (bitmap.height * 1.35f).toInt())
             return Pins(
                 normal = BitmapDrawable(context.resources, bitmap),
